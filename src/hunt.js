@@ -193,6 +193,7 @@ Write ONE new Kane test that passes on the original app and fails with this chan
     restore();
     const onReal = await kane(testFile, { heal: true });
     emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_real_app", verdict: onReal.verdict, kane: kaneSays(onReal) });
+    (m.loop ??= []).push({ attempt, check: "passes on the real app", verdict: onReal.verdict, kane: kaneSays(onReal) });
     if (onReal.verdict !== "passed") {
       feedback = `\nYour previous attempt:\n${text}\nKane ran it on the ORIGINAL app and it did not pass (${onReal.verdict}). Kane's report: ${kaneSays(onReal) || "no details"}${onReal.evidence?.suggestedFix ? `. Kane suggests: ${onReal.evidence.suggestedFix}` : ""}\nThe app is correct here, so the test is wrong: fix it so it passes on the original app.\n`;
       wipeRecording(testFile);
@@ -202,6 +203,7 @@ Write ONE new Kane test that passes on the original app and fails with this chan
     plant(m);
     const onBug = await kane(testFile, { heal: false });
     emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_bug", verdict: onBug.verdict, kane: kaneSays(onBug) });
+    m.loop.push({ attempt, check: "fails on the bug", verdict: onBug.verdict, kane: kaneSays(onBug) });
     m.runs.push({ test: fileName, verdict: onBug.verdict, kane: kaneSays(onBug) });
     if (onBug.verdict === "failed") {
       recordKill(m, fileName, onBug);
