@@ -87,3 +87,13 @@ test("full hunt: kills, closes the loop with a new test, scores before/after", a
   assert.match(html, /33% <\/span>|33%/);
   assert.match(html, /100%/);
 });
+
+test("reads Kane's diagnosis and screenshot from an evidence pack", async () => {
+  const { readEvidence, packEntry } = await import("../src/kane.js");
+  const e = readEvidence(path.join(FIX, "kill.evidence"));
+  assert.equal(e.runKind, "replay");
+  assert.equal(e.title, "Counter shows wrong number");
+  assert.equal(e.rootCause, "The footer counts completed todos as left.");
+  assert.equal(e.screenshotEntry, "tests/guard/steps/9-1-3/screenshot.jpg");
+  assert.ok(packEntry(e.pack, e.screenshotEntry, { binary: true }).length > 0);
+});

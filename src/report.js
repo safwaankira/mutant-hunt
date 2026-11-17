@@ -13,7 +13,7 @@ export function renderReport(r) {
   <pre>${diff}</pre>
   ${m.why ? `<p class="why">Planted because ${esc(m.why)}.</p>` : ""}
   ${m.killedBy ? `<p class="by">Caught by <code>${esc(m.killedBy)}</code>${m.loopAttempts ? ` &middot; agent attempt ${m.loopAttempts}` : ""}</p>` : ""}
-  ${m.evidence ? `<p class="ev">Kane: ${esc(m.evidence)}</p>` : ""}
+  ${m.kane?.title || m.kane?.rootCause ? `<div class="kane">${m.screenshot ? `<a href="${esc(m.screenshot)}"><img src="${esc(m.screenshot)}" alt="Kane's screenshot of the broken app at the failing step"></a>` : ""}<div><span class="kl">Kane's diagnosis${m.kane.confidence ? ` &middot; ${Math.round(m.kane.confidence * 100)}% confident` : ""}</span><b>${esc(m.kane.title ?? "")}</b><p>${esc(m.kane.rootCause ?? "")}</p></div></div>` : m.evidence ? `<p class="ev">Kane: ${esc(m.evidence)}</p>` : ""}
 </article>`;
   }).join("\n");
   const added = r.added.map((a) => `<li><code>${esc(a.test)}</code> written for ${esc(a.forMutant)} (${a.attempts} attempt${a.attempts > 1 ? "s" : ""})</li>`).join("");
@@ -38,7 +38,11 @@ h2{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em
 .pill.kill{color:var(--kill)}.pill.new{color:var(--new)}.pill.survived{color:var(--surv)}.pill.equivalent,.pill.error{color:var(--dim)}
 pre{margin:10px 0 6px;white-space:pre-wrap;color:var(--dim)}.del{color:var(--surv)}.add{color:var(--kill)}
 .why,.by,.ev{margin:4px 0;color:var(--dim)}.ev{color:var(--ink)}code{color:var(--new)}
-ul{padding-left:18px;color:var(--dim)}footer{margin-top:48px;color:var(--dim);font-size:12px}
+ul{padding-left:18px;color:var(--dim)}
+.kane{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-top:10px;padding:10px;background:#11140f;border:1px solid var(--line)}
+.kane img{width:100%;display:block;border:1px solid var(--line)}.kane b{display:block;color:var(--ink);margin:2px 0 4px}.kane p{margin:0;color:var(--dim)}
+.kl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--new)}
+@media(max-width:640px){.kane{grid-template-columns:1fr}}footer{margin-top:48px;color:var(--dim);font-size:12px}
 </style></head><body><main>
 <div class="kicker">Mutant Hunt &middot; verified with Kane CLI</div>
 <h1><span class="from">${r.before.score}%</span> <span class="arrow">→</span> <span class="to">${r.after.score}%</span></h1>

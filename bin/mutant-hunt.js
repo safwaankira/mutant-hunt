@@ -14,14 +14,16 @@ const HELP = `mutant-hunt - who tests your tests?
 
 Usage:
   mutant-hunt run      [--config mutant-hunt.config.json] [--max-mutants N] [--rounds N]
-                       [--agent-cli claude|codex|openai] [--model NAME] [--agent]
+                       [--agent-cli claude|codex|openai] [--model NAME] [--agent] [--fresh]
   mutant-hunt report   [--config ...]   re-render the HTML report from the last run
   mutant-hunt doctor                    check Kane CLI, sign-in, Chrome and the agent
   mutant-hunt init                      write a starter config and a first Kane test
 
 --agent   NDJSON on stdout (one event per line, last one is {"type":"mh_done"}),
           for Claude Code, Codex or CI. Exit 0 = every non-equivalent bug caught,
-          1 = some survived, 2 = could not run.`;
+          1 = some survived, 2 = could not run.
+--fresh   start from your own tests only: tests Mutant Hunt added earlier
+          (mh-*_test.md) are moved to .mutant-hunt/previous/ first.`;
 
 function args(argv) {
   const out = { _: [] };
@@ -55,9 +57,9 @@ async function main() {
     if (agentMode) process.stdout.write(JSON.stringify({ ...e, ts: new Date().toISOString() }) + "\n");
     else if (e.type === "mh_baseline") console.log(`baseline  ${e.verdict.padEnd(7)} ${e.test}`);
     else if (e.type === "mh_mutants") console.log(`planted   ${e.count} bugs (from ${e.sites} possible sites)`);
-    else if (e.type === "mh_mutant") console.log(`${e.status === "killed" ? "caught   " : e.status.padEnd(9)} ${e.id} ${e.file ?? ""}${e.line ? ":" + e.line : ""} ${e.killed_by ? "by " + e.killed_by : ""}${e.bonus ? " (bonus)" : ""}`);
+    else if (e.type === "mh_mutant") console.log(`${e.status === "killed" ? "caught   " : e.status.padEnd(9)} ${e.id} ${e.file ?? ""}${e.line ? ":" + e.line : ""} ${e.killed_by ? "by " + e.killed_by : ""}${e.bonus ? " (bonus)" : ""}${e.kane && e.status === "killed" ? `\n          Kane: ${e.kane}` : ""}`);
     else if (e.type === "mh_score") console.log(`score     ${e.phase}: ${e.score}% (${e.killed} caught / ${e.killed + e.survived})`);
-    else if (e.type === "mh_loop") console.log(`  loop    ${e.id} #${e.attempt} ${e.step}${e.verdict ? " -> " + e.verdict : ""}${e.note ? " (" + e.note + ")" : ""}`);
+    else if (e.type === "mh_loop") console.log(`  loop    ${e.id} #${e.attempt} ${e.step}${e.verdict ? " -> " + e.verdict : ""}${e.note ? " (" + e.note + ")" : ""}${e.kane && e.verdict === "failed" ? `\n          Kane: ${e.kane}` : ""}`);
     else if (e.type === "mh_warning") console.error(`warning   ${e.message}`);
   };
 
@@ -103,6 +105,18 @@ async function main() {
 
   if (cmd === "run") {
     if (a["max-mutants"]) cfg.maxMutants = Number(a["max-mutants"]);
+    if (a.fresh) {
+      const testsDir = path.resolve(cfg.root, cfg.tests);
+      const prev = path.join(outDir, "previous");
+      fs.mkdirSync(prev, { recursive: true });
+      for (const f of fs.readdirSync(testsDir)) {
+        if (/^mh-.*_test\.md$/.test(f) || /^output-mh-/.test(f)) {
+          fs.rmSync(path.join(prev, f), { recursive: true, force: true });
+          fs.renameSync(path.join(testsDir, f), path.join(prev, f));
+        }
+      }
+      fs.rmSync(path.join(cfg.root, "mutant-hunt-report", "shots"), { recursive: true, force: true });
+    }
     const model = createModel({ agent: a["agent-cli"] ?? cfg.agent, model: a.model ?? cfg.model, cacheDir: path.join(outDir, "cache") });
     const r = await hunt(cfg, { model, emit, rounds: Number(a.rounds ?? cfg.rounds) });
     fs.mkdirSync(path.dirname(reportJson), { recursive: true });

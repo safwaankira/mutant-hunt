@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { runKaneTest as realRunKaneTest } from "./kane.js";
+import { runKaneTest as realRunKaneTest, packEntry } from "./kane.js";
 import { serveStatic, startCommand, copyDir } from "./serve.js";
 import { generateMutants, mutatedSource, mutantDiff } from "./mutants.js";
 
@@ -19,11 +19,30 @@ Rules for steps:
 Reply with ONLY the test file content, no fences, no commentary.
 If the planted change cannot change anything a user can see or do in the browser, reply with exactly: EQUIVALENT: <one-line reason>`;
 
+/** Kane's own words for a run: its failure title and root cause when it has them. */
+function kaneSays(r) {
+  const e = r.evidence;
+  if (e?.title || e?.rootCause) return [e.title, e.rootCause].filter(Boolean).join(" - ");
+  return r.oneLiner || r.summary || "";
+}
+
+function keepScreenshot(r, reportDir, name) {
+  const e = r.evidence;
+  if (!e?.screenshotEntry || !reportDir) return null;
+  const buf = packEntry(e.pack, e.screenshotEntry, { binary: true });
+  if (!buf) return null;
+  fs.mkdirSync(path.join(reportDir, "shots"), { recursive: true });
+  const rel = `shots/${name}.jpg`;
+  fs.writeFileSync(path.join(reportDir, rel), buf);
+  return rel;
+}
+
 export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () => {}, rounds = 2, attempts = 3 } = {}) {
   const root = cfg.root;
   const appDir = path.resolve(root, cfg.app);
   const testsDir = path.resolve(root, cfg.tests);
   const work = path.resolve(root, ".mutant-hunt", "app");
+  const reportDir = path.resolve(root, cfg.reportDir ?? "mutant-hunt-report");
   fs.mkdirSync(testsDir, { recursive: true });
   copyDir(appDir, work);
 
@@ -48,7 +67,7 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
       baseline.push({ test: path.basename(t), verdict: r.verdict, oneLiner: r.oneLiner });
       emit({ type: "mh_baseline", test: path.basename(t), verdict: r.verdict, one_liner: r.oneLiner });
       if (r.verdict !== "passed") {
-        throw new Error(`Baseline failed: ${path.basename(t)} does not pass on the real app (${r.verdict}: ${r.oneLiner || r.summary || r.stderr || r.error}). Fix the test or the app first.`);
+        throw new Error(`Baseline failed: ${path.basename(t)} does not pass on the real app (${r.verdict}: ${kaneSays(r) || r.stderr || r.error}). Fix the test or the app first.`);
       }
     }
     if (!baseline.length) throw new Error(`No *_test.md files in ${cfg.tests}. Write at least one Kane test first (mutant-hunt init makes one).`);
@@ -68,12 +87,9 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
       m.runs = m.runs ?? [];
       for (const t of tests) {
         const r = await kane(t, { heal: false });
-        m.runs.push({ test: path.basename(t), verdict: r.verdict, oneLiner: r.oneLiner, failedAt: r.failedAt, summary: r.summary });
+        m.runs.push({ test: path.basename(t), verdict: r.verdict, kane: kaneSays(r) });
         if (r.verdict === "failed") {
-          m.status = "killed";
-          m.killedBy = path.basename(t);
-          m.evidence = r.oneLiner || r.summary;
-          m.failedAt = r.failedAt;
+          recordKill(m, path.basename(t), r);
           return;
         }
         if (r.verdict === "error") { m.status = "error"; m.evidence = r.stderr || r.error; return; }
@@ -81,10 +97,18 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
       m.status = "survived";
     };
 
+    const recordKill = (m, test, r) => {
+      Object.assign(m, {
+        status: "killed", killedBy: test, evidence: kaneSays(r),
+        kane: r.evidence ? { title: r.evidence.title, rootCause: r.evidence.rootCause, category: r.evidence.category, confidence: r.evidence.confidence, message: r.evidence.message } : null,
+        screenshot: keepScreenshot(r, reportDir, m.id),
+      });
+    };
+
     for (const m of mutants) {
       await huntOne(m, listTests());
       m.round0 = m.status;
-      emit({ type: "mh_mutant", id: m.id, file: m.file, line: m.line, status: m.status, killed_by: m.killedBy ?? null, evidence: m.evidence ?? null });
+      emit({ type: "mh_mutant", id: m.id, file: m.file, line: m.line, status: m.status, killed_by: m.killedBy ?? null, kane: m.evidence ?? null });
     }
     const before = score(mutants);
     emit({ type: "mh_score", phase: "before", ...before });
@@ -96,17 +120,18 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
       if (!survivors.length) break;
       for (const m of survivors) {
         if (m.status !== "survived") continue; // killed by a test added earlier this round
-        const result = await closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests });
+        const result = await closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests, recordKill });
         if (result?.testFile) {
           added.push({ test: path.basename(result.testFile), forMutant: m.id, attempts: result.attempts });
           // a new test often catches other survivors too: replays are cheap, so check them all
           for (const other of mutants.filter((x) => x.status === "survived" && x !== m)) {
             plant(other);
             const r = await kane(result.testFile, { heal: false });
-            other.runs.push({ test: path.basename(result.testFile), verdict: r.verdict, oneLiner: r.oneLiner });
+            other.runs.push({ test: path.basename(result.testFile), verdict: r.verdict, kane: kaneSays(r) });
             if (r.verdict === "failed") {
-              Object.assign(other, { status: "killed", killedBy: path.basename(result.testFile), evidence: r.oneLiner, closedInRound: round });
-              emit({ type: "mh_mutant", id: other.id, status: "killed", killed_by: other.killedBy, evidence: other.evidence, bonus: true });
+              recordKill(other, path.basename(result.testFile), r);
+              other.closedInRound = round;
+              emit({ type: "mh_mutant", id: other.id, status: "killed", killed_by: other.killedBy, kane: other.evidence, bonus: true });
             }
           }
         }
@@ -126,9 +151,9 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
   }
 }
 
-async function closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests }) {
+async function closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests, recordKill }) {
   const existing = listTests().map((t) => `### ${path.basename(t)}\n${fs.readFileSync(t, "utf8")}`).join("\n\n");
-  const kaneSaw = (m.runs ?? []).map((r) => `- ${r.test}: passed on the changed app (${r.oneLiner || "no notes"})`).join("\n");
+  const kaneSaw = (m.runs ?? []).map((r) => `- ${r.test}: passed on the changed app${r.kane ? ` (${r.kane})` : ""}`).join("\n");
   const fileName = `mh-${m.id.toLowerCase()}_test.md`;
   const testFile = path.join(testsDir, fileName);
   let feedback = "";
@@ -167,22 +192,23 @@ Write ONE new Kane test that passes on the original app and fails with this chan
     // must pass on the real app (this run authors its recording)
     restore();
     const onReal = await kane(testFile, { heal: true });
-    emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_real_app", verdict: onReal.verdict, one_liner: onReal.oneLiner });
+    emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_real_app", verdict: onReal.verdict, kane: kaneSays(onReal) });
     if (onReal.verdict !== "passed") {
-      feedback = `\nYour previous attempt:\n${text}\nKane ran it on the ORIGINAL app and it did not pass (${onReal.verdict}). Kane reported: ${onReal.oneLiner || ""} ${onReal.summary || ""} ${onReal.failedAt ? `Failed at: ${onReal.failedAt}` : ""}\nFix it so it passes on the original app.\n`;
+      feedback = `\nYour previous attempt:\n${text}\nKane ran it on the ORIGINAL app and it did not pass (${onReal.verdict}). Kane's report: ${kaneSays(onReal) || "no details"}${onReal.evidence?.suggestedFix ? `. Kane suggests: ${onReal.evidence.suggestedFix}` : ""}\nThe app is correct here, so the test is wrong: fix it so it passes on the original app.\n`;
       wipeRecording(testFile);
       continue;
     }
     // must fail on the bug (replay, healing off)
     plant(m);
     const onBug = await kane(testFile, { heal: false });
-    emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_bug", verdict: onBug.verdict, one_liner: onBug.oneLiner });
-    m.runs.push({ test: fileName, verdict: onBug.verdict, oneLiner: onBug.oneLiner, failedAt: onBug.failedAt });
+    emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_bug", verdict: onBug.verdict, kane: kaneSays(onBug) });
+    m.runs.push({ test: fileName, verdict: onBug.verdict, kane: kaneSays(onBug) });
     if (onBug.verdict === "failed") {
-      Object.assign(m, { status: "killed", killedBy: fileName, evidence: onBug.oneLiner || onBug.summary, failedAt: onBug.failedAt, closedByLoop: true, loopAttempts: attempt });
+      recordKill(m, fileName, onBug);
+      Object.assign(m, { closedByLoop: true, loopAttempts: attempt });
       return { testFile, attempts: attempt };
     }
-    feedback = `\nYour previous attempt:\n${text}\nKane ran it with the change in place and it still PASSED. Kane reported: ${onBug.oneLiner || ""} ${onBug.summary || ""}\nMake the final verify check the exact value or item that the change breaks.\n`;
+    feedback = `\nYour previous attempt:\n${text}\nKane ran it with the change in place and it still PASSED${kaneSays(onBug) ? ` (${kaneSays(onBug)})` : ""}, so its checks never touch what the change breaks.\nMake the final verify check the exact value or item that the change breaks.\n`;
     wipeRecording(testFile);
   }
   fs.rmSync(testFile, { force: true });

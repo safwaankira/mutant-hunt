@@ -2,3 +2,6 @@ node_modules/
 .mutant-hunt/app/
 .testmuai/evidence/
 **/.testmuai/evidence/
+output-*/
+**/output-*/
+.mutant-hunt/previous/

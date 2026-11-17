@@ -3,17 +3,35 @@
   "version": "0.1.0",
   "description": "Who tests your tests? Plant realistic bugs, let Kane CLI hunt them in a real browser, and have your coding agent close every gap.",
   "type": "module",
-  "bin": { "mutant-hunt": "bin/mutant-hunt.js" },
-  "files": ["bin", "src", "templates", "skills", "vendor"],
+  "bin": {
+    "mutant-hunt": "bin/mutant-hunt.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "skills",
+    "vendor"
+  ],
   "scripts": {
     "test": "node --test test/*.test.js",
     "demo": "cd examples/todomvc && node ../../bin/mutant-hunt.js run"
   },
-  "engines": { "node": ">=20" },
-  "keywords": ["mutation-testing", "kane-cli", "e2e", "testing", "ai-agents", "claude-code"],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mutation-testing",
+    "kane-cli",
+    "e2e",
+    "testing",
+    "ai-agents",
+    "claude-code"
+  ],
   "license": "MIT",
   "dependencies": {
     "@babel/parser": "^7.26.0",
-    "@babel/traverse": "^7.26.0"
+    "@babel/traverse": "^7.26.0",
+    "yaml": "^2.9.1"
   }
 }
