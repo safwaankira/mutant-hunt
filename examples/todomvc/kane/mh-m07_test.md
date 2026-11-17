@@ -1,0 +1,16 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Strike-through styling matches each todo's state after the list redraws
+
+## Add two todos and complete one
+Open http://localhost:4173/. Add a todo "Buy milk", then add a todo "Walk the dog". Tick the checkbox next to "Buy milk". Verify the footer counter reads exactly "1 item left".
+
+## Add a third todo
+Add a todo "Pay rent". Verify exactly three todos are listed: "Buy milk", "Walk the dog" and "Pay rent", and the footer counter reads exactly "2 items left".
+
+## Check each row's styling
+Without clicking anything and without reloading, look at the todo list on the current page. Verify "Buy milk" is the only todo whose text is struck through, and "Walk the dog" and "Pay rent" are shown as normal text with no strike-through.

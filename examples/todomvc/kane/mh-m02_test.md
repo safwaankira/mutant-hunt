@@ -1,0 +1,24 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+Deleting a todo on the default "All" view doesn't remove its row from the list with the change in place. The counter still updates because it is read from storage separately, so the final check counts the visible rows instead. I keep three todos so the list never empties and stays on screen, and I never switch filters because that would redraw the list and hide the problem.
+
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Deleted todo disappears from the list straight away
+
+## Add three todos
+Open http://localhost:4173/. Add a todo "Buy milk", then add a todo "Walk the dog", then add a todo "Pay rent". Verify exactly three todos are listed: "Buy milk", "Walk the dog" and "Pay rent", and the footer counter reads exactly "3 items left".
+
+## Delete "Buy milk" with its delete button
+Without clicking any filter and without reloading the page, hover over the "Buy milk" row and click its delete (×) button on the right. Verify the footer counter reads exactly "2 items left".
+
+## Check the list itself
+Without clicking anything, look at the todo list on the current page. Verify there are exactly two todo rows, they are "Walk the dog" and "Pay rent", and no row with the text "Buy milk" is visible anywhere in the list.

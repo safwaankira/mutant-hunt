@@ -1,7 +1,14 @@
 {
+  "name": "TodoMVC",
   "describe": "TodoMVC: add todos, tick them complete, filter All / Active / Completed, the 'N items left' counter, Clear completed, Mark all as complete, double-click to edit",
   "app": "app",
-  "mutate": ["controller.js", "model.js", "store.js", "view.js", "template.js"],
+  "mutate": [
+    "controller.js",
+    "model.js",
+    "store.js",
+    "view.js",
+    "template.js"
+  ],
   "tests": "kane",
   "port": 4173,
   "maxMutants": 10,

@@ -1,0 +1,13 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Completing a todo updates the counter and filters
+
+## Add two todos and complete one
+Open http://localhost:4173/. Add a todo "Buy milk", then add a todo "Walk the dog". Tick the checkbox next to "Buy milk". Verify the footer counter reads exactly "1 item left".
+
+## Check the Completed and Active filters
+Click the "Completed" filter. Verify exactly one todo is listed and it is "Buy milk". Then click the "Active" filter and verify exactly one todo is listed and it is "Walk the dog".

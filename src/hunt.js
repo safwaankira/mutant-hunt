@@ -142,7 +142,7 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
     emit({ type: "mh_score", phase: "after", ...after });
 
     return {
-      app: cfg.app, url, agent: model.name, finishedAt: new Date().toISOString(),
+      app: cfg.name ?? cfg.app, url, agent: model.name, finishedAt: new Date().toISOString(),
       baseline, mutants: mutants.map((m) => ({ ...m, diff: mutantDiff(sources, m) })),
       before, after, added, credits: Math.round(ledger.credits * 10) / 10, kaneRuns: ledger.kaneRuns,
     };

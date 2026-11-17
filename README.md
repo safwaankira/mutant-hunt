@@ -5,7 +5,15 @@
 every bug Kane misses back to your coding agent, which writes the Kane test that
 catches it.
 
-<!-- RESULT -->
+![Mutant Hunt report: Kane caught 10% of planted bugs before, 100% after](docs/report.png)
+
+**Real run, TodoMVC, two starter Kane tests:** Claude Code planted 10 bugs. Kane caught **1**.
+Every missed bug went back to Claude with Kane's report, Claude wrote 5 new Kane tests (two needed a
+second try after Kane said "still passes"), and Kane then caught **all 9 real bugs**, each with its own
+diagnosis, e.g. *"Todo edit field remains visible after saving: after Enter saves the changed todo, the page
+does not leave editing mode"* (96% confident) for a flipped `iscanceled` check. The 10th change was
+judged harmless, with the reason in the report. 51 Kane runs, 361 credits.
+Full report: [`examples/todomvc/mutant-hunt-report`](examples/todomvc/mutant-hunt-report/index.html).
 
 ```bash
 npm i -g @testmuai/kane-cli && kane-cli login --oauth
@@ -47,10 +55,11 @@ then goes a step further: it fixes the gaps it finds.
    work around the very bug we planted; with it off, a kill is Kane's evidence that the app broke.
 4. **Close the loop.** Each bug Kane missed goes back to the agent with the diff and Kane's report.
    The agent writes a plain-English `*_test.md`. Kane must show it **passes on the real app** and
-   **fails on the bug**. If either check fails, Kane's output goes back to the agent for another try
-   (up to 3). A new test is also replayed against the other bugs that are still uncaught.
-5. **Report.** A kill score before and after, every bug with its diff, which test caught it and what
-   Kane saw: `mutant-hunt-report/index.html` and `report.json`.
+   **fails on the bug**. If either check fails, Kane's verdict and root cause go back to the agent for
+   another try (up to 3). A new test is also replayed against the other bugs that are still uncaught.
+5. **Report.** A kill score before and after, every bug with its diff, which test caught it, and
+   **Kane's own diagnosis**: the failure title, root cause and screenshot that Kane's investigator seals
+   into each run's evidence pack. `mutant-hunt-report/index.html` and `report.json`.
 
 ## Use it on your app
 
@@ -86,8 +95,8 @@ npx mutant-hunt run       # or: run --agent for NDJSON
 | Criterion | Where to look |
 |---|---|
 | Ships | `examples/todomvc`: a real app, real Kane runs, three commands above. Recorded run: `examples/todomvc/mutant-hunt-report/` |
-| Verified | Each planted bug in the report has Kane's own one-line verdict and the test that caught it. Healing is off for every bug run (`src/kane.js`) |
-| Closed loop | `src/hunt.js` `closeOne()`: Kane's verdicts and reports are written into the agent's next prompt; the loop ends only when Kane proves pass-on-real and fail-on-bug |
+| Verified | Each caught bug in the report has Kane's diagnosis (title, root cause, confidence) and its screenshot of the broken page, read from Kane's evidence pack (`readEvidence()` in `src/kane.js`). Healing is off for every bug run |
+| Closed loop | `src/hunt.js` `closeOne()`: Kane's verdicts and root causes go into the agent's next prompt; the loop ends only when Kane proves pass-on-real and fail-on-bug. In the recorded run, M02 and M07 each took a second attempt after Kane's feedback |
 | Craft | `npx`-style CLI, `doctor`, `--agent` NDJSON + exit codes, Claude Code skill, prompt cache, `npm test` (fake Kane + fake agent, runs offline) |
 
 **What was reused, honestly.** The bug-planting prompts and site finder are adapted from

@@ -1,0 +1,537 @@
+{
+  "app": "TodoMVC",
+  "url": "http://localhost:4173/",
+  "agent": "claude",
+  "finishedAt": "2026-11-17T15:18:40.422Z",
+  "baseline": [
+    {
+      "test": "add_todos_test.md",
+      "verdict": "passed",
+      "oneLiner": ""
+    },
+    {
+      "test": "complete_todo_test.md",
+      "verdict": "passed",
+      "oneLiner": ""
+    }
+  ],
+  "mutants": [
+    {
+      "file": "model.js",
+      "line": 66,
+      "start": 2202,
+      "end": 2204,
+      "feature": "call",
+      "orig": "id",
+      "replacement": "undefined",
+      "why": "",
+      "id": "M01",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Todo footer count ignores completed item - After Buy milk was completed, the app still counted it as unfinished in the footer."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Todo footer count ignores completed item - After Buy milk was completed, the app still counted it as unfinished in the footer.",
+      "kane": {
+        "title": "Todo footer count ignores completed item",
+        "rootCause": "After Buy milk was completed, the app still counted it as unfinished in the footer.",
+        "category": "application_issue/ui_data_defect",
+        "confidence": 0.99,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M01.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- model.js:66\n- this.storage.save(data, callback, id);\n+ this.storage.save(data, callback, undefined);"
+    },
+    {
+      "file": "model.js",
+      "line": 76,
+      "start": 2473,
+      "end": 2481,
+      "feature": "call",
+      "orig": "callback",
+      "replacement": "() => {}",
+      "why": "the item is removed from storage but the real callback never runs. The view doesn't refresh, so the deleted todo stays on screen and the item counter stays the same until the page is reloaded",
+      "id": "M02",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "failed",
+          "kane": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m02_test.md",
+      "evidence": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data.",
+      "kane": {
+        "title": "Todo fixture contains unexpected Buy milk row",
+        "rootCause": "The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data.",
+        "category": "automation_bug/test_data_issue",
+        "confidence": 0.94,
+        "message": "assertion_failed: @ step 4"
+      },
+      "screenshot": "shots/M02.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 2,
+      "diff": "--- model.js:76\n- this.storage.remove(id, callback);\n+ this.storage.remove(id, () => {});"
+    },
+    {
+      "file": "store.js",
+      "line": 25,
+      "start": 713,
+      "end": 717,
+      "feature": "call",
+      "orig": "data",
+      "replacement": "{ todos: [{ id: 0, title: \"\", completed: false }] }",
+      "why": "the store starts with one empty todo instead of an empty list. The user would see a blank item in the list and the counter would read \"1 item left\" before they add anything",
+      "id": "M03",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Replay started with an extra blank todo - The app was not in the clean two-todo state assumed by the recording. An extra blank todo was already present, making the expected counter incorrect."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Replay started with an extra blank todo - The app was not in the clean two-todo state assumed by the recording. An extra blank todo was already present, making the expected counter incorrect.",
+      "kane": {
+        "title": "Replay started with an extra blank todo",
+        "rootCause": "The app was not in the clean two-todo state assumed by the recording. An extra blank todo was already present, making the expected counter incorrect.",
+        "category": "automation_bug/state_transition_bug",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M03.jpg",
+      "closedInRound": 1,
+      "diff": "--- store.js:25\n- memoryStorage[name] = JSON.stringify(data);\n+ memoryStorage[name] = JSON.stringify({ todos: [{ id: 0, title: \"\", completed: false }] });"
+    },
+    {
+      "file": "store.js",
+      "line": 121,
+      "start": 3555,
+      "end": 3582,
+      "feature": "call",
+      "orig": "memoryStorage[this._dbName]",
+      "replacement": "memoryStorage[this._dbName].replace('\"completed\":true', '\"completed\":false')",
+      "why": "removing a todo also un-completes the first completed todo still in storage. After a delete, that todo would show as active again, its checkbox would be unticked and the \"items left\" count would go up by one",
+      "id": "M04",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "failed",
+          "kane": "Todo delete control does not appear on row hover - The row's delete control is not available after the required hover action, preventing a user from removing the todo and updating the item count."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m02_test.md",
+      "evidence": "Todo delete control does not appear on row hover - The row's delete control is not available after the required hover action, preventing a user from removing the todo and updating the item count.",
+      "kane": {
+        "title": "Todo delete control does not appear on row hover",
+        "rootCause": "The row's delete control is not available after the required hover action, preventing a user from removing the todo and updating the item count.",
+        "category": "application_issue/functional_defect",
+        "confidence": 0.74,
+        "message": "action_failed: click @ step 2"
+      },
+      "screenshot": "shots/M04.jpg",
+      "closedInRound": 1,
+      "diff": "--- store.js:121\n- const data = JSON.parse(memoryStorage[this._dbName]);\n+ const data = JSON.parse(memoryStorage[this._dbName].replace('\"completed\":true', '\"completed\":false'));"
+    },
+    {
+      "file": "store.js",
+      "line": 134,
+      "start": 3904,
+      "end": 3931,
+      "feature": "call",
+      "orig": "memoryStorage[this._dbName]",
+      "replacement": "JSON.stringify({ todos: [] })",
+      "why": "the callback always gets an empty list after a delete, even though the other todos are still in storage. Any view rendered from this callback shows no todos and a count of 0 until the page reloads",
+      "id": "M05",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "passed",
+          "kane": ""
+        }
+      ],
+      "status": "equivalent",
+      "round0": "survived",
+      "evidence": "the only caller of remove (controller.js:106) passes a callback that ignores the list it gets and removes the row by id, so the empty list never reaches the screen.",
+      "diff": "--- store.js:134\n- callback(JSON.parse(memoryStorage[this._dbName]).todos);\n+ callback(JSON.parse(JSON.stringify({ todos: [] })).todos);"
+    },
+    {
+      "file": "template.js",
+      "line": 52,
+      "start": 1457,
+      "end": 1467,
+      "feature": "call",
+      "orig": "item.title",
+      "replacement": "item.id",
+      "why": "each todo's label would show its numeric ID (for example \"1700000000000\") and not the text the user typed",
+      "id": "M06",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "failed",
+          "kane": "Recorded todo text does not match displayed items - The replay did not leave the requested todo text in the app. The visible list shows two items and \"2 items left\", so adding items worked, but the recorded input/actions produced the wrong values."
+        }
+      ],
+      "status": "killed",
+      "killedBy": "add_todos_test.md",
+      "evidence": "Recorded todo text does not match displayed items - The replay did not leave the requested todo text in the app. The visible list shows two items and \"2 items left\", so adding items worked, but the recorded input/actions produced the wrong values.",
+      "kane": {
+        "title": "Recorded todo text does not match displayed items",
+        "rootCause": "The replay did not leave the requested todo text in the app. The visible list shows two items and \"2 items left\", so adding items worked, but the recorded input/actions produced the wrong values.",
+        "category": "automation_bug/agent_misstep",
+        "confidence": 0.92,
+        "message": "assertion_failed: @ step 8"
+      },
+      "screenshot": "shots/M06.jpg",
+      "round0": "killed",
+      "diff": "--- template.js:52\n- title: escape(item.title),\n+ title: escape(item.id),"
+    },
+    {
+      "file": "template.js",
+      "line": 53,
+      "start": 1497,
+      "end": 1511,
+      "feature": "ternary",
+      "orig": "item.completed",
+      "replacement": "!item.completed",
+      "why": "the \"completed\" class would go on every active todo and be missing from every completed one. Active items would show strike-through styling and completed items would look active. The checkbox state would still be correct, so the checkbox and the styling would disagree",
+      "id": "M07",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m07_test.md",
+          "verdict": "failed",
+          "kane": "Todo completion styling is reversed - The page is applying the completed-text styling to Pay rent and Walk the dog instead of Buy milk. The visible item count and checkmarks show the opposite completion state."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m07_test.md",
+      "evidence": "Todo completion styling is reversed - The page is applying the completed-text styling to Pay rent and Walk the dog instead of Buy milk. The visible item count and checkmarks show the opposite completion state.",
+      "kane": {
+        "title": "Todo completion styling is reversed",
+        "rootCause": "The page is applying the completed-text styling to Pay rent and Walk the dog instead of Buy milk. The visible item count and checkmarks show the opposite completion state.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 4"
+      },
+      "screenshot": "shots/M07.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 2,
+      "diff": "--- template.js:53\n- completed: item.completed ? \"completed\" : \"\",\n+ completed: !item.completed ? \"completed\" : \"\","
+    },
+    {
+      "file": "template.js",
+      "line": 80,
+      "start": 2306,
+      "end": 2324,
+      "feature": "ternary",
+      "orig": "completedTodos > 0",
+      "replacement": "completedTodos > 1",
+      "why": "when exactly one todo is completed, the \"Clear completed\" button text is empty, so the user can't see the button to clear that one item",
+      "id": "M08",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m07_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m08_test.md",
+          "verdict": "failed",
+          "kane": "Clear completed control missing after todo completion - The footer is not showing the completed-item cleanup control even though a completed todo is present."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m08_test.md",
+      "evidence": "Clear completed control missing after todo completion - The footer is not showing the completed-item cleanup control even though a completed todo is present.",
+      "kane": {
+        "title": "Clear completed control missing after todo completion",
+        "rootCause": "The footer is not showing the completed-item cleanup control even though a completed todo is present.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.97,
+        "message": "assertion_failed: @ step 10"
+      },
+      "screenshot": "shots/M08.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- template.js:80\n- return completedTodos > 0 ? \"Clear completed\" : \"\";\n+ return completedTodos > 1 ? \"Clear completed\" : \"\";"
+    },
+    {
+      "file": "view.js",
+      "line": 156,
+      "start": 5024,
+      "end": 5049,
+      "feature": "call",
+      "orig": "{ id: _itemId(e.target) }",
+      "replacement": "{ id: _itemId(e.target) + 1 }",
+      "why": "clicking the destroy button sends the id plus one. The app then deletes a different todo, or nothing at all if no todo has that id, while the clicked one stays in the list",
+      "id": "M09",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "failed",
+          "kane": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m02_test.md",
+      "evidence": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent.",
+      "kane": {
+        "title": "Todo fixture no longer matches recorded expectation",
+        "rootCause": "The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent.",
+        "category": "automation_bug/test_data_issue",
+        "confidence": 0.96,
+        "message": "assertion_failed: @ step 4"
+      },
+      "screenshot": "shots/M09.jpg",
+      "closedInRound": 1,
+      "diff": "--- view.js:156\n- $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) }));\n+ $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) + 1 }));"
+    },
+    {
+      "file": "view.js",
+      "line": 163,
+      "start": 5399,
+      "end": 5427,
+      "feature": "if",
+      "orig": "!e.target.dataset.iscanceled",
+      "replacement": "e.target.dataset.iscanceled",
+      "why": "the condition is reversed. Pressing Enter or clicking away no longer saves the edit, so the label keeps its old text and the item stays in edit mode. Pressing Escape, which should cancel, now saves whatever was typed",
+      "id": "M10",
+      "runs": [
+        {
+          "test": "add_todos_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "complete_todo_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m02_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m07_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m08_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m10_test.md",
+          "verdict": "failed",
+          "kane": "Todo edit field remains visible after saving - After Enter saves the changed todo, the page does not leave editing mode."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m10_test.md",
+      "evidence": "Todo edit field remains visible after saving - After Enter saves the changed todo, the page does not leave editing mode.",
+      "kane": {
+        "title": "Todo edit field remains visible after saving",
+        "rootCause": "After Enter saves the changed todo, the page does not leave editing mode.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.96,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M10.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- view.js:163\n- if (!e.target.dataset.iscanceled) {\n+ if (e.target.dataset.iscanceled) {"
+    }
+  ],
+  "before": {
+    "killed": 1,
+    "survived": 9,
+    "equivalent": 0,
+    "errors": 0,
+    "score": 10
+  },
+  "after": {
+    "killed": 9,
+    "survived": 0,
+    "equivalent": 1,
+    "errors": 0,
+    "score": 100
+  },
+  "added": [
+    {
+      "test": "mh-m01_test.md",
+      "forMutant": "M01",
+      "attempts": 1
+    },
+    {
+      "test": "mh-m02_test.md",
+      "forMutant": "M02",
+      "attempts": 2
+    },
+    {
+      "test": "mh-m07_test.md",
+      "forMutant": "M07",
+      "attempts": 2
+    },
+    {
+      "test": "mh-m08_test.md",
+      "forMutant": "M08",
+      "attempts": 1
+    },
+    {
+      "test": "mh-m10_test.md",
+      "forMutant": "M10",
+      "attempts": 1
+    }
+  ],
+  "credits": 361.5,
+  "kaneRuns": 51
+}
