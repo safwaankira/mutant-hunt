@@ -51,7 +51,7 @@ function run(cmd, args, input, timeoutMs) {
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code === 0) resolve(out.trim());
-      else reject(new Error(`${cmd} exited ${code}: ${err.trim().slice(-400)}`));
+      else reject(new Error(`${cmd} exited ${code}: ${(err.trim() || out.trim()).slice(-300)}`));
     });
     child.stdin.end(input);
   });

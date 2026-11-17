@@ -23,6 +23,7 @@ export async function generateMutants({ appDir, files, model, maxMutants, option
   log({ type: "mh_sites", files: files.length, sites: total, sampled: sites.length });
 
   const mutants = [];
+  const failures = [];
   let next = 0;
   const worker = async () => {
     while (next < sites.length && mutants.length < maxMutants) {
@@ -32,7 +33,10 @@ export async function generateMutants({ appDir, files, model, maxMutants, option
       try {
         text = await model.complete(SYSTEM_PROMPT, renderPrompt(site, code));
       } catch (e) {
+        failures.push(e.message);
         log({ type: "mh_warning", message: `agent failed on ${site.file}:${site.line}: ${e.message}` });
+        // the agent is down (not signed in, no network): stop instead of burning through every site
+        if (failures.length >= 3 && !mutants.length) next = sites.length;
         continue;
       }
       let kept = 0;
@@ -51,6 +55,9 @@ export async function generateMutants({ appDir, files, model, maxMutants, option
     }
   };
   await Promise.all(Array.from({ length: concurrency }, worker));
+  if (!mutants.length && failures.length) {
+    throw new Error(`The agent (${model.name}) could not plant any bugs: ${failures.at(-1)}. Check it works on its own, e.g. echo hi | claude -p`);
+  }
   // stable ids in file/line order, so reports and caches line up between runs
   mutants.sort((a, b) => a.file.localeCompare(b.file) || a.start - b.start);
   mutants.forEach((m, i) => (m.id = `M${String(i + 1).padStart(2, "0")}`));
