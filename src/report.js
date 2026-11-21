@@ -13,6 +13,7 @@ export function renderReport(r) {
   <pre>${diff}</pre>
   ${m.why ? `<p class="why">Planted because ${esc(m.why)}.</p>` : ""}
   ${(m.loop ?? []).length ? `<ol class="loop">${m.loop.map((l) => `<li>attempt ${l.attempt}: ${esc(l.check)}? <b>${l.check.startsWith("fails") ? (l.verdict === "failed" ? "yes" : "no") : (l.verdict === "passed" ? "yes" : "no")}</b>${l.kane && l.verdict !== "passed" && !l.check.startsWith("fails") ? ` (Kane: ${esc(l.kane)})` : ""}</li>`).join("")}</ol>` : ""}
+  ${m.build ? `<p class="by"><a href="${esc(m.build)}">Try this broken build &rarr;</a></p>` : ""}
   ${m.killedBy ? `<p class="by">Caught by <code>${esc(m.killedBy)}</code>${m.loopAttempts ? ` &middot; agent attempt ${m.loopAttempts}` : ""}</p>` : ""}
   ${m.kane?.title || m.kane?.rootCause ? `<div class="kane">${m.screenshot ? `<a class="shot" href="${esc(m.screenshot)}" title="Kane's screenshot at the failing step (click for full size)"><img src="${esc(m.screenshot)}" alt="Kane's screenshot of the broken app at the failing step"></a>` : ""}<div><span class="kl">Kane's diagnosis${m.kane.confidence ? ` &middot; ${Math.round(m.kane.confidence * 100)}% confident` : ""}</span><b>${esc(m.kane.title ?? "")}</b><p>${esc(m.kane.rootCause ?? "")}</p></div></div>` : m.evidence ? `<p class="ev">Kane: ${esc(m.evidence)}</p>` : ""}
 </article>`;
@@ -38,7 +39,7 @@ h2{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em
 .pill{margin-left:auto;font-size:12px;padding:2px 8px;border:1px solid currentColor}
 .pill.kill{color:var(--kill)}.pill.new{color:var(--new)}.pill.survived{color:var(--surv)}.pill.equivalent,.pill.error{color:var(--dim)}
 pre{margin:10px 0 6px;white-space:pre-wrap;color:var(--dim)}.del{color:var(--surv)}.add{color:var(--kill)}
-.why,.by,.ev{margin:4px 0;color:var(--dim)}.ev{color:var(--ink)}code{color:var(--new)}
+.why,.by,.ev{margin:4px 0;color:var(--dim)}.ev{color:var(--ink)}code{color:var(--new)}a{color:var(--new)}
 ul{padding-left:18px;color:var(--dim)}
 .loop{margin:6px 0;padding-left:20px;color:var(--dim);font-size:13px}.loop b{color:var(--ink)}
 .kane{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-top:10px;padding:10px;background:#11140f;border:1px solid var(--line)}
@@ -58,12 +59,22 @@ ul{padding-left:18px;color:var(--dim)}
 <div><b>${r.kaneRuns}</b><span>Kane runs</span></div>
 <div><b>${r.credits}</b><span>Kane credits</span></div>
 </div>
-<h2>Every planted bug</h2>
+${healSection(r)}
+<h2>Every planted bug${r.cleanBuild ? ` <span class="kl" style="margin-left:10px"><a href="${esc(r.cleanBuild)}">clean app</a></span>` : ""}</h2>
 ${rows}
 <h2>Tests the agent added</h2>
 <ul>${added || "<li>None needed.</li>"}</ul>
 <footer>Mutants from an LLMorpheus-style prompt (MIT, GitHub Next). Kane runs replay with adaptive healing off, so a kill is Kane's evidence, not a heal. ${esc(r.finishedAt)}</footer>
 </main></body></html>`;
+}
+
+function healSection(r) {
+  const h = r.healCheck;
+  if (!h) return "";
+  const rows = h.results.map((x) => `<li><b>${esc(x.id)}</b> ${x.verdict === "skipped" ? "skipped" : x.masked ? '<span style="color:var(--surv)">hidden by healing</span>' : '<span style="color:var(--kill)">still caught</span>'} <span class="where">${esc(x.test)}</span>${x.kane && !x.masked ? ` &middot; ${esc(x.kane)}` : ""}</li>`).join("");
+  return `<h2>Does Kane's self-healing hide bugs?</h2>
+<p class="sub">Every caught bug replayed again with adaptive healing <b>on</b> (Kane's default). With healing on, Kane still caught <b>${h.stillCaught} of ${h.checked}</b>; healing hid <b>${h.masked}</b>. ${h.credits} credits.</p>
+<ul>${rows}</ul>`;
 }
 
 function bar(r) {

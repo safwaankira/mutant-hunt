@@ -57,7 +57,8 @@
       "screenshot": "shots/M01.jpg",
       "closedByLoop": true,
       "loopAttempts": 1,
-      "diff": "--- model.js:66\n- this.storage.save(data, callback, id);\n+ this.storage.save(data, callback, undefined);"
+      "diff": "--- model.js:66\n- this.storage.save(data, callback, id);\n+ this.storage.save(data, callback, undefined);",
+      "build": "builds/M01/"
     },
     {
       "file": "model.js",
@@ -93,16 +94,16 @@
         {
           "test": "mh-m02_test.md",
           "verdict": "failed",
-          "kane": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data."
+          "kane": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only “Walk the dog” and “Pay rent,” but the live page also contained “Buy milk.” No setup action ran to restore the expected starting data."
         }
       ],
       "status": "killed",
       "round0": "survived",
       "killedBy": "mh-m02_test.md",
-      "evidence": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data.",
+      "evidence": "Todo fixture contains unexpected Buy milk row - The test expected a prepared list containing only “Walk the dog” and “Pay rent,” but the live page also contained “Buy milk.” No setup action ran to restore the expected starting data.",
       "kane": {
         "title": "Todo fixture contains unexpected Buy milk row",
-        "rootCause": "The test expected a prepared list containing only \u201cWalk the dog\u201d and \u201cPay rent,\u201d but the live page also contained \u201cBuy milk.\u201d No setup action ran to restore the expected starting data.",
+        "rootCause": "The test expected a prepared list containing only “Walk the dog” and “Pay rent,” but the live page also contained “Buy milk.” No setup action ran to restore the expected starting data.",
         "category": "automation_bug/test_data_issue",
         "confidence": 0.94,
         "message": "assertion_failed: @ step 4"
@@ -110,7 +111,8 @@
       "screenshot": "shots/M02.jpg",
       "closedByLoop": true,
       "loopAttempts": 2,
-      "diff": "--- model.js:76\n- this.storage.remove(id, callback);\n+ this.storage.remove(id, () => {});"
+      "diff": "--- model.js:76\n- this.storage.remove(id, callback);\n+ this.storage.remove(id, () => {});",
+      "build": "builds/M02/"
     },
     {
       "file": "store.js",
@@ -152,7 +154,8 @@
       },
       "screenshot": "shots/M03.jpg",
       "closedInRound": 1,
-      "diff": "--- store.js:25\n- memoryStorage[name] = JSON.stringify(data);\n+ memoryStorage[name] = JSON.stringify({ todos: [{ id: 0, title: \"\", completed: false }] });"
+      "diff": "--- store.js:25\n- memoryStorage[name] = JSON.stringify(data);\n+ memoryStorage[name] = JSON.stringify({ todos: [{ id: 0, title: \"\", completed: false }] });",
+      "build": "builds/M03/"
     },
     {
       "file": "store.js",
@@ -199,7 +202,8 @@
       },
       "screenshot": "shots/M04.jpg",
       "closedInRound": 1,
-      "diff": "--- store.js:121\n- const data = JSON.parse(memoryStorage[this._dbName]);\n+ const data = JSON.parse(memoryStorage[this._dbName].replace('\"completed\":true', '\"completed\":false'));"
+      "diff": "--- store.js:121\n- const data = JSON.parse(memoryStorage[this._dbName]);\n+ const data = JSON.parse(memoryStorage[this._dbName].replace('\"completed\":true', '\"completed\":false'));",
+      "build": "builds/M04/"
     },
     {
       "file": "store.js",
@@ -236,7 +240,8 @@
       "status": "equivalent",
       "round0": "survived",
       "evidence": "the only caller of remove (controller.js:106) passes a callback that ignores the list it gets and removes the row by id, so the empty list never reaches the screen.",
-      "diff": "--- store.js:134\n- callback(JSON.parse(memoryStorage[this._dbName]).todos);\n+ callback(JSON.parse(JSON.stringify({ todos: [] })).todos);"
+      "diff": "--- store.js:134\n- callback(JSON.parse(memoryStorage[this._dbName]).todos);\n+ callback(JSON.parse(JSON.stringify({ todos: [] })).todos);",
+      "build": "builds/M05/"
     },
     {
       "file": "template.js",
@@ -267,7 +272,8 @@
       },
       "screenshot": "shots/M06.jpg",
       "round0": "killed",
-      "diff": "--- template.js:52\n- title: escape(item.title),\n+ title: escape(item.id),"
+      "diff": "--- template.js:52\n- title: escape(item.title),\n+ title: escape(item.id),",
+      "build": "builds/M06/"
     },
     {
       "file": "template.js",
@@ -320,7 +326,8 @@
       "screenshot": "shots/M07.jpg",
       "closedByLoop": true,
       "loopAttempts": 2,
-      "diff": "--- template.js:53\n- completed: item.completed ? \"completed\" : \"\",\n+ completed: !item.completed ? \"completed\" : \"\","
+      "diff": "--- template.js:53\n- completed: item.completed ? \"completed\" : \"\",\n+ completed: !item.completed ? \"completed\" : \"\",",
+      "build": "builds/M07/"
     },
     {
       "file": "template.js",
@@ -378,7 +385,8 @@
       "screenshot": "shots/M08.jpg",
       "closedByLoop": true,
       "loopAttempts": 1,
-      "diff": "--- template.js:80\n- return completedTodos > 0 ? \"Clear completed\" : \"\";\n+ return completedTodos > 1 ? \"Clear completed\" : \"\";"
+      "diff": "--- template.js:80\n- return completedTodos > 0 ? \"Clear completed\" : \"\";\n+ return completedTodos > 1 ? \"Clear completed\" : \"\";",
+      "build": "builds/M08/"
     },
     {
       "file": "view.js",
@@ -409,23 +417,24 @@
         {
           "test": "mh-m02_test.md",
           "verdict": "failed",
-          "kane": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent."
+          "kane": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is “Buy milk” and “Walk the dog” is absent."
         }
       ],
       "status": "killed",
       "round0": "survived",
       "killedBy": "mh-m02_test.md",
-      "evidence": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent.",
+      "evidence": "Todo fixture no longer matches recorded expectation - The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is “Buy milk” and “Walk the dog” is absent.",
       "kane": {
         "title": "Todo fixture no longer matches recorded expectation",
-        "rootCause": "The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is \u201cBuy milk\u201d and \u201cWalk the dog\u201d is absent.",
+        "rootCause": "The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is “Buy milk” and “Walk the dog” is absent.",
         "category": "automation_bug/test_data_issue",
         "confidence": 0.96,
         "message": "assertion_failed: @ step 4"
       },
       "screenshot": "shots/M09.jpg",
       "closedInRound": 1,
-      "diff": "--- view.js:156\n- $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) }));\n+ $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) + 1 }));"
+      "diff": "--- view.js:156\n- $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) }));\n+ $delegate(this.$todoList, \".destroy\", \"click\", (e) => handler({ id: _itemId(e.target) + 1 }));",
+      "build": "builds/M09/"
     },
     {
       "file": "view.js",
@@ -488,7 +497,8 @@
       "screenshot": "shots/M10.jpg",
       "closedByLoop": true,
       "loopAttempts": 1,
-      "diff": "--- view.js:163\n- if (!e.target.dataset.iscanceled) {\n+ if (e.target.dataset.iscanceled) {"
+      "diff": "--- view.js:163\n- if (!e.target.dataset.iscanceled) {\n+ if (e.target.dataset.iscanceled) {",
+      "build": "builds/M10/"
     }
   ],
   "before": {
@@ -533,5 +543,6 @@
     }
   ],
   "credits": 361.5,
-  "kaneRuns": 51
+  "kaneRuns": 51,
+  "cleanBuild": "builds/clean/"
 }

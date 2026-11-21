@@ -18,8 +18,9 @@ h2{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em
 .pill{margin-left:auto;font-size:12px;padding:2px 8px;border:1px solid currentColor}
 .pill.kill{color:var(--kill)}.pill.new{color:var(--new)}.pill.survived{color:var(--surv)}.pill.equivalent,.pill.error{color:var(--dim)}
 pre{margin:10px 0 6px;white-space:pre-wrap;color:var(--dim)}.del{color:var(--surv)}.add{color:var(--kill)}
-.why,.by,.ev{margin:4px 0;color:var(--dim)}.ev{color:var(--ink)}code{color:var(--new)}
+.why,.by,.ev{margin:4px 0;color:var(--dim)}.ev{color:var(--ink)}code{color:var(--new)}a{color:var(--new)}
 ul{padding-left:18px;color:var(--dim)}
+.loop{margin:6px 0;padding-left:20px;color:var(--dim);font-size:13px}.loop b{color:var(--ink)}
 .kane{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-top:10px;padding:10px;background:#11140f;border:1px solid var(--line)}
 .shot{display:block;position:relative;height:150px;overflow:hidden;border:1px solid var(--line);background:#f5f5f5}
 .shot img{position:absolute;width:420%;left:50%;top:-6%;transform:translateX(-50%)}.kane b{display:block;color:var(--ink);margin:2px 0 4px}.kane p{margin:0;color:var(--dim)}
@@ -37,13 +38,16 @@ ul{padding-left:18px;color:var(--dim)}
 <div><b>51</b><span>Kane runs</span></div>
 <div><b>361.5</b><span>Kane credits</span></div>
 </div>
-<h2>Every planted bug</h2>
+
+<h2>Every planted bug <span class="kl" style="margin-left:10px"><a href="builds/clean/">clean app</a></span></h2>
 <article class="m new">
   <header><b>M01</b><span class="where">model.js:66</span><span class="pill new">caught by new test</span></header>
   <pre>--- model.js:66
 <span class="del">- this.storage.save(data, callback, id);</span>
 <span class="add">+ this.storage.save(data, callback, undefined);</span></pre>
   
+  
+  <p class="by"><a href="builds/M01/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m01_test.md</code> &middot; agent attempt 1</p>
   <div class="kane"><a class="shot" href="shots/M01.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M01.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 99% confident</span><b>Todo footer count ignores completed item</b><p>After Buy milk was completed, the app still counted it as unfinished in the footer.</p></div></div>
 </article>
@@ -53,6 +57,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- this.storage.remove(id, callback);</span>
 <span class="add">+ this.storage.remove(id, () =&gt; {});</span></pre>
   <p class="why">Planted because the item is removed from storage but the real callback never runs. The view doesn't refresh, so the deleted todo stays on screen and the item counter stays the same until the page is reloaded.</p>
+  
+  <p class="by"><a href="builds/M02/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m02_test.md</code> &middot; agent attempt 2</p>
   <div class="kane"><a class="shot" href="shots/M02.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M02.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 94% confident</span><b>Todo fixture contains unexpected Buy milk row</b><p>The test expected a prepared list containing only “Walk the dog” and “Pay rent,” but the live page also contained “Buy milk.” No setup action ran to restore the expected starting data.</p></div></div>
 </article>
@@ -62,6 +68,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- memoryStorage[name] = JSON.stringify(data);</span>
 <span class="add">+ memoryStorage[name] = JSON.stringify({ todos: [{ id: 0, title: &quot;&quot;, completed: false }] });</span></pre>
   <p class="why">Planted because the store starts with one empty todo instead of an empty list. The user would see a blank item in the list and the counter would read &quot;1 item left&quot; before they add anything.</p>
+  
+  <p class="by"><a href="builds/M03/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m01_test.md</code></p>
   <div class="kane"><a class="shot" href="shots/M03.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M03.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 98% confident</span><b>Replay started with an extra blank todo</b><p>The app was not in the clean two-todo state assumed by the recording. An extra blank todo was already present, making the expected counter incorrect.</p></div></div>
 </article>
@@ -71,6 +79,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- const data = JSON.parse(memoryStorage[this._dbName]);</span>
 <span class="add">+ const data = JSON.parse(memoryStorage[this._dbName].replace('&quot;completed&quot;:true', '&quot;completed&quot;:false'));</span></pre>
   <p class="why">Planted because removing a todo also un-completes the first completed todo still in storage. After a delete, that todo would show as active again, its checkbox would be unticked and the &quot;items left&quot; count would go up by one.</p>
+  
+  <p class="by"><a href="builds/M04/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m02_test.md</code></p>
   <div class="kane"><a class="shot" href="shots/M04.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M04.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 74% confident</span><b>Todo delete control does not appear on row hover</b><p>The row's delete control is not available after the required hover action, preventing a user from removing the todo and updating the item count.</p></div></div>
 </article>
@@ -81,6 +91,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="add">+ callback(JSON.parse(JSON.stringify({ todos: [] })).todos);</span></pre>
   <p class="why">Planted because the callback always gets an empty list after a delete, even though the other todos are still in storage. Any view rendered from this callback shows no todos and a count of 0 until the page reloads.</p>
   
+  <p class="by"><a href="builds/M05/">Try this broken build &rarr;</a></p>
+  
   <p class="ev">Kane: the only caller of remove (controller.js:106) passes a callback that ignores the list it gets and removes the row by id, so the empty list never reaches the screen.</p>
 </article>
 <article class="m kill">
@@ -89,6 +101,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- title: escape(item.title),</span>
 <span class="add">+ title: escape(item.id),</span></pre>
   <p class="why">Planted because each todo's label would show its numeric ID (for example &quot;1700000000000&quot;) and not the text the user typed.</p>
+  
+  <p class="by"><a href="builds/M06/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>add_todos_test.md</code></p>
   <div class="kane"><a class="shot" href="shots/M06.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M06.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 92% confident</span><b>Recorded todo text does not match displayed items</b><p>The replay did not leave the requested todo text in the app. The visible list shows two items and &quot;2 items left&quot;, so adding items worked, but the recorded input/actions produced the wrong values.</p></div></div>
 </article>
@@ -98,6 +112,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- completed: item.completed ? &quot;completed&quot; : &quot;&quot;,</span>
 <span class="add">+ completed: !item.completed ? &quot;completed&quot; : &quot;&quot;,</span></pre>
   <p class="why">Planted because the &quot;completed&quot; class would go on every active todo and be missing from every completed one. Active items would show strike-through styling and completed items would look active. The checkbox state would still be correct, so the checkbox and the styling would disagree.</p>
+  
+  <p class="by"><a href="builds/M07/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m07_test.md</code> &middot; agent attempt 2</p>
   <div class="kane"><a class="shot" href="shots/M07.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M07.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 98% confident</span><b>Todo completion styling is reversed</b><p>The page is applying the completed-text styling to Pay rent and Walk the dog instead of Buy milk. The visible item count and checkmarks show the opposite completion state.</p></div></div>
 </article>
@@ -107,6 +123,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- return completedTodos &gt; 0 ? &quot;Clear completed&quot; : &quot;&quot;;</span>
 <span class="add">+ return completedTodos &gt; 1 ? &quot;Clear completed&quot; : &quot;&quot;;</span></pre>
   <p class="why">Planted because when exactly one todo is completed, the &quot;Clear completed&quot; button text is empty, so the user can't see the button to clear that one item.</p>
+  
+  <p class="by"><a href="builds/M08/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m08_test.md</code> &middot; agent attempt 1</p>
   <div class="kane"><a class="shot" href="shots/M08.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M08.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 97% confident</span><b>Clear completed control missing after todo completion</b><p>The footer is not showing the completed-item cleanup control even though a completed todo is present.</p></div></div>
 </article>
@@ -116,6 +134,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- $delegate(this.$todoList, &quot;.destroy&quot;, &quot;click&quot;, (e) =&gt; handler({ id: _itemId(e.target) }));</span>
 <span class="add">+ $delegate(this.$todoList, &quot;.destroy&quot;, &quot;click&quot;, (e) =&gt; handler({ id: _itemId(e.target) + 1 }));</span></pre>
   <p class="why">Planted because clicking the destroy button sends the id plus one. The app then deletes a different todo, or nothing at all if no todo has that id, while the clicked one stays in the list.</p>
+  
+  <p class="by"><a href="builds/M09/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m02_test.md</code></p>
   <div class="kane"><a class="shot" href="shots/M09.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M09.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 96% confident</span><b>Todo fixture no longer matches recorded expectation</b><p>The replay began with different saved todo data than the recording expected. The visible list has two rows, but one is “Buy milk” and “Walk the dog” is absent.</p></div></div>
 </article>
@@ -125,6 +145,8 @@ ul{padding-left:18px;color:var(--dim)}
 <span class="del">- if (!e.target.dataset.iscanceled) {</span>
 <span class="add">+ if (e.target.dataset.iscanceled) {</span></pre>
   <p class="why">Planted because the condition is reversed. Pressing Enter or clicking away no longer saves the edit, so the label keeps its old text and the item stays in edit mode. Pressing Escape, which should cancel, now saves whatever was typed.</p>
+  
+  <p class="by"><a href="builds/M10/">Try this broken build &rarr;</a></p>
   <p class="by">Caught by <code>mh-m10_test.md</code> &middot; agent attempt 1</p>
   <div class="kane"><a class="shot" href="shots/M10.jpg" title="Kane's screenshot at the failing step (click for full size)"><img src="shots/M10.jpg" alt="Kane's screenshot of the broken app at the failing step"></a><div><span class="kl">Kane's diagnosis &middot; 96% confident</span><b>Todo edit field remains visible after saving</b><p>After Enter saves the changed todo, the page does not leave editing mode.</p></div></div>
 </article>

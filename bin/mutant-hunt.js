@@ -9,19 +9,24 @@ import { hunt } from "../src/hunt.js";
 import { createModel } from "../src/model.js";
 import { renderReport, renderSummary } from "../src/report.js";
 import { KANE_BIN } from "../src/kane.js";
+import { healCheck, writeBuilds } from "../src/heal.js";
 
 const HELP = `mutant-hunt - who tests your tests?
 
 Usage:
   mutant-hunt run      [--config mutant-hunt.config.json] [--max-mutants N] [--rounds N]
-                       [--agent-cli claude|codex|openai] [--model NAME] [--agent] [--fresh]
-  mutant-hunt report   [--config ...]   re-render the HTML report from the last run
+                       [--agent-cli claude|codex|openai] [--model NAME] [--agent] [--fresh] [--replay]
+  mutant-hunt heal-check               replay every caught bug with Kane's healing ON:
+                                       would self-healing have hidden it?
+  mutant-hunt report   [--config ...]   re-render the HTML report (and the broken builds) from the last run
   mutant-hunt doctor                    check Kane CLI, sign-in, Chrome and the agent
   mutant-hunt init                      write a starter config and a first Kane test
 
 --agent   NDJSON on stdout (one event per line, last one is {"type":"mh_done"}),
           for Claude Code, Codex or CI. Exit 0 = every non-equivalent bug caught,
           1 = some survived, 2 = could not run.
+--replay  never call the agent: plant the same bugs from the saved answers in
+          .mutant-hunt/cache (judges can rerun with Kane alone)
 --fresh   start from your own tests only: tests Mutant Hunt added earlier
           (mh-*_test.md) are moved to .mutant-hunt/previous/ first.`;
 
@@ -98,8 +103,24 @@ async function main() {
 
   if (cmd === "report") {
     const r = JSON.parse(fs.readFileSync(reportJson, "utf8"));
+    writeBuilds(cfg, r, path.dirname(reportJson));
+    fs.writeFileSync(reportJson, JSON.stringify(r, null, 2));
     fs.writeFileSync(path.join(path.dirname(reportJson), "index.html"), renderReport(r));
     console.log(renderSummary(r));
+    return 0;
+  }
+
+  if (cmd === "heal-check") {
+    const r = JSON.parse(fs.readFileSync(reportJson, "utf8"));
+    const h = await healCheck(cfg, r, {
+      emit: (e) => agentMode ? emit(e) : console.log(`heal ON  ${e.id} ${e.masked ? "HIDDEN  (Kane healed around the bug)" : "caught"}  ${e.test}${e.kane ? "\n          Kane: " + e.kane : ""}`),
+    });
+    r.healCheck = h;
+    writeBuilds(cfg, r, path.dirname(reportJson));
+    fs.writeFileSync(reportJson, JSON.stringify(r, null, 2));
+    fs.writeFileSync(path.join(path.dirname(reportJson), "index.html"), renderReport(r));
+    const line = `With healing ON, Kane still caught ${h.stillCaught}/${h.checked} bugs; healing hid ${h.masked}. ${h.credits} credits.`;
+    if (agentMode) emit({ type: "mh_done", healCheck: h }); else console.log("\n" + line);
     return 0;
   }
 
@@ -117,9 +138,10 @@ async function main() {
       }
       fs.rmSync(path.join(cfg.root, "mutant-hunt-report", "shots"), { recursive: true, force: true });
     }
-    const model = createModel({ agent: a["agent-cli"] ?? cfg.agent, model: a.model ?? cfg.model, cacheDir: path.join(outDir, "cache") });
+    const model = createModel({ agent: a["agent-cli"] ?? cfg.agent, model: a.model ?? cfg.model, cacheDir: path.join(outDir, "cache"), replay: Boolean(a.replay) });
     const r = await hunt(cfg, { model, emit, rounds: Number(a.rounds ?? cfg.rounds) });
     fs.mkdirSync(path.dirname(reportJson), { recursive: true });
+    writeBuilds(cfg, r, path.dirname(reportJson));
     fs.writeFileSync(reportJson, JSON.stringify(r, null, 2));
     fs.writeFileSync(path.join(path.dirname(reportJson), "index.html"), renderReport(r));
     if (agentMode) emit({ type: "mh_done", before: r.before, after: r.after, added: r.added, credits: r.credits, report: path.relative(process.cwd(), path.join(path.dirname(reportJson), "index.html")), uncaught: r.mutants.filter((m) => m.status === "survived").map((m) => ({ id: m.id, file: m.file, line: m.line, diff: m.diff })) });
