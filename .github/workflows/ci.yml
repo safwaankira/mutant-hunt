@@ -1,0 +1,28 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+      - name: Replay mode plants the recorded bugs without an agent
+        run: |
+          node -e '
+          import("./src/mutants.js").then(async ({ generateMutants }) => {
+            const { createModel } = await import("./src/model.js");
+            const fs = await import("node:fs");
+            const model = createModel({ agent: "claude", replay: true, cacheDir: "examples/todomvc/.mutant-hunt/cache" });
+            const { mutants } = await generateMutants({ appDir: "examples/todomvc/app", files: ["controller.js","model.js","store.js","view.js","template.js"], model, maxMutants: 10 });
+            const rec = JSON.parse(fs.readFileSync("examples/todomvc/mutant-hunt-report/report.json", "utf8")).mutants;
+            const same = mutants.filter(m => rec.some(r => r.id === m.id && r.start === m.start && r.replacement === m.replacement)).length;
+            console.log(same + "/" + rec.length + " recorded bugs re-planted from the cache");
+            if (same !== rec.length) process.exit(1);
+          });'
