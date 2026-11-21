@@ -3,6 +3,7 @@
 // the test passes on the real app and fails on the bug -> repeat.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { runKaneTest as realRunKaneTest, packEntry } from "./kane.js";
 import { serveStatic, startCommand, copyDir } from "./serve.js";
@@ -151,10 +152,12 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
   }
 }
 
-async function closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests, recordKill }) {
+export async function closeOne(m, { cfg, url, sources, testsDir, model, kane, plant, restore, attempts, emit, listTests, recordKill, bugHeal = false }) {
   const existing = listTests().map((t) => `### ${path.basename(t)}\n${fs.readFileSync(t, "utf8")}`).join("\n\n");
-  const kaneSaw = (m.runs ?? []).map((r) => `- ${r.test}: passed on the changed app${r.kane ? ` (${r.kane})` : ""}`).join("\n");
-  const fileName = `mh-${m.id.toLowerCase()}_test.md`;
+  const kaneSaw = bugHeal
+    ? `- ${m.killedBy}: failed with Kane's adaptive healing OFF, but PASSED with healing ON (Kane's default): Kane re-recorded the step that broke, and nothing checked what the change really breaks.`
+    : (m.runs ?? []).map((r) => `- ${r.test}: passed on the changed app${r.kane ? ` (${r.kane})` : ""}`).join("\n");
+  const fileName = bugHeal ? `mh-${m.id.toLowerCase()}-heal_test.md` : `mh-${m.id.toLowerCase()}_test.md`;
   const testFile = path.join(testsDir, fileName);
   let feedback = "";
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -171,7 +174,8 @@ ${kaneSaw}
 Existing tests (do not repeat them; find the user-visible behaviour they never check):
 ${existing}
 ${feedback}
-Write ONE new Kane test that passes on the original app and fails with this change.`;
+Write ONE new Kane test that passes on the original app and fails with this change.${bugHeal ? `
+Kane will run it with adaptive healing ON, so a step that merely stops matching gets re-recorded. The failure must come from a final verify of the exact value or state the change breaks.` : ""}`;
     let text;
     try {
       text = (await model.complete(WRITER_SYSTEM, prompt, { cache: attempt === 1 })).trim();
@@ -201,7 +205,15 @@ Write ONE new Kane test that passes on the original app and fails with this chan
     }
     // must fail on the bug (replay, healing off)
     plant(m);
-    const onBug = await kane(testFile, { heal: false });
+    const recDir = path.join(testsDir, `output-${fileName.replace(/_test\.md$/, "")}`);
+    const snap = bugHeal && fs.existsSync(recDir) ? fs.mkdtempSync(path.join(os.tmpdir(), "mh-rec-")) : null;
+    if (snap) fs.cpSync(recDir, path.join(snap, "rec"), { recursive: true });
+    let onBug;
+    try {
+      onBug = await kane(testFile, { heal: bugHeal });
+    } finally {
+      if (snap) { fs.rmSync(recDir, { recursive: true, force: true }); fs.cpSync(path.join(snap, "rec"), recDir, { recursive: true }); fs.rmSync(snap, { recursive: true, force: true }); }
+    }
     emit({ type: "mh_loop", id: m.id, attempt, step: "kane_on_bug", verdict: onBug.verdict, kane: kaneSays(onBug) });
     m.loop.push({ attempt, check: "fails on the bug", verdict: onBug.verdict, kane: kaneSays(onBug) });
     m.runs.push({ test: fileName, verdict: onBug.verdict, kane: kaneSays(onBug) });
@@ -221,6 +233,14 @@ Write ONE new Kane test that passes on the original app and fails with this chan
 function wipeRecording(testFile) {
   const stem = path.basename(testFile).replace(/_test\.md$/, "");
   fs.rmSync(path.join(path.dirname(testFile), `output-${stem}`), { recursive: true, force: true });
+}
+
+/** Kane failed a check (assertion) or a recorded step stopped matching (replay)? From Kane's own failure message. */
+export function killKind(m) {
+  const msg = m.kane?.message ?? "";
+  if (/^assertion_failed/.test(msg)) return "check";
+  if (/^action_failed|^locator|^navigation/.test(msg)) return "replay";
+  return m.status === "killed" ? "unknown" : null;
 }
 
 export function score(mutants) {

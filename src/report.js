@@ -13,6 +13,7 @@ export function renderReport(r) {
   <pre>${diff}</pre>
   ${m.why ? `<p class="why">Planted because ${esc(m.why)}.</p>` : ""}
   ${(m.loop ?? []).length ? `<ol class="loop">${m.loop.map((l) => `<li>attempt ${l.attempt}: ${esc(l.check)}? <b>${l.check.startsWith("fails") ? (l.verdict === "failed" ? "yes" : "no") : (l.verdict === "passed" ? "yes" : "no")}</b>${l.kane && l.verdict !== "passed" && !l.check.startsWith("fails") ? ` (Kane: ${esc(l.kane)})` : ""}</li>`).join("")}</ol>` : ""}
+  ${m.status === "killed" ? `<p class="by">Kane caught it with ${/^assertion_failed/.test(m.kane?.message ?? "") ? "a failed <b>check</b>" : /^action_failed/.test(m.kane?.message ?? "") ? "a <b>replay that stopped matching</b> (not a check)" : "a failure"}${(r.healCheck?.results ?? []).find((x) => x.id === m.id)?.masked ? ' &middot; <span style="color:var(--surv)">healing on hides it</span>' : (r.healCheck ? " &middot; still caught with healing on" : "")}</p>` : ""}
   ${m.build ? `<p class="by"><a href="${esc(m.build)}">Try this broken build &rarr;</a></p>` : ""}
   ${m.killedBy ? `<p class="by">Caught by <code>${esc(m.killedBy)}</code>${m.loopAttempts ? ` &middot; agent attempt ${m.loopAttempts}` : ""}</p>` : ""}
   ${m.kane?.title || m.kane?.rootCause ? `<div class="kane">${m.screenshot ? `<a class="shot" href="${esc(m.screenshot)}" title="Kane's screenshot at the failing step (click for full size)"><img src="${esc(m.screenshot)}" alt="Kane's screenshot of the broken app at the failing step"></a>` : ""}<div><span class="kl">Kane's diagnosis${m.kane.confidence ? ` &middot; ${Math.round(m.kane.confidence * 100)}% confident` : ""}</span><b>${esc(m.kane.title ?? "")}</b><p>${esc(m.kane.rootCause ?? "")}</p></div></div>` : m.evidence ? `<p class="ev">Kane: ${esc(m.evidence)}</p>` : ""}
@@ -72,9 +73,15 @@ function healSection(r) {
   const h = r.healCheck;
   if (!h) return "";
   const rows = h.results.map((x) => `<li><b>${esc(x.id)}</b> ${x.verdict === "skipped" ? "skipped" : x.masked ? '<span style="color:var(--surv)">hidden by healing</span>' : '<span style="color:var(--kill)">still caught</span>'} <span class="where">${esc(x.test)}</span>${x.kane && !x.masked ? ` &middot; ${esc(x.kane)}` : ""}</li>`).join("");
+  const kinds = r.mutants.filter((m) => m.status === "killed").map((m) => ({ id: m.id, kind: /^assertion_failed/.test(m.kane?.message ?? "") ? "check" : /^action_failed/.test(m.kane?.message ?? "") ? "replay" : "unknown" }));
+  const byKind = (k) => kinds.filter((x) => x.kind === k).map((x) => x.id);
+  const hiddenIds = h.results.filter((x) => x.masked).map((x) => x.id);
+  const closed = (h.closed ?? []).map((c) => `<li><b>${esc(c.id)}</b> ${c.closed ? `<span style="color:var(--kill)">caught with healing on</span> by <code>${esc(c.test)}</code>${c.kane ? ` &middot; Kane: ${esc(c.kane)}` : ""}` : '<span style="color:var(--surv)">still hidden</span>'}</li>`).join("");
   return `<h2>Does Kane's self-healing hide bugs?</h2>
-<p class="sub">Every caught bug replayed again with adaptive healing <b>on</b> (Kane's default). With healing on, Kane still caught <b>${h.stillCaught} of ${h.checked}</b>; healing hid <b>${h.masked}</b>. ${h.credits} credits.</p>
-<ul>${rows}</ul>`;
+<p class="sub">Every caught bug replayed again with adaptive healing <b>on</b> (Kane's default). With healing on, Kane still caught <b>${h.stillCaught} of ${h.checked}</b>; healing hid <b>${h.masked}</b> (${esc(hiddenIds.join(", ") || "none")}). ${h.credits} credits.</p>
+<p class="sub">The pattern: Kane caught ${byKind("check").length} bugs with a failed <b>check</b> (${esc(byKind("check").join(", "))}) and ${byKind("replay").length} because a recorded <b>step stopped matching</b> (${esc(byKind("replay").join(", ") || "none")}). Every check-catch survived healing; the replay-catch is the one healing hid.</p>
+<ul>${rows}</ul>
+${closed ? `<p class="sub">Closed loop for healing: the hidden bug went back to the agent for a test whose failing check is a final verify, proven by Kane with healing on.</p><ul>${closed}</ul>` : ""}`;
 }
 
 function bar(r) {

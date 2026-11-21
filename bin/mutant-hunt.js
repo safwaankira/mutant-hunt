@@ -9,15 +9,16 @@ import { hunt } from "../src/hunt.js";
 import { createModel } from "../src/model.js";
 import { renderReport, renderSummary } from "../src/report.js";
 import { KANE_BIN } from "../src/kane.js";
-import { healCheck, writeBuilds } from "../src/heal.js";
+import { healCheck, writeBuilds, closeHealed } from "../src/heal.js";
 
 const HELP = `mutant-hunt - who tests your tests?
 
 Usage:
   mutant-hunt run      [--config mutant-hunt.config.json] [--max-mutants N] [--rounds N]
                        [--agent-cli claude|codex|openai] [--model NAME] [--agent] [--fresh] [--replay]
-  mutant-hunt heal-check               replay every caught bug with Kane's healing ON:
-                                       would self-healing have hidden it?
+  mutant-hunt heal-check [--close]     replay every caught bug with Kane's healing ON:
+                                       would self-healing have hidden it? --close sends each
+                                       hidden bug back to the agent for a heal-proof test
   mutant-hunt report   [--config ...]   re-render the HTML report (and the broken builds) from the last run
   mutant-hunt doctor                    check Kane CLI, sign-in, Chrome and the agent
   mutant-hunt init                      write a starter config and a first Kane test
@@ -112,6 +113,16 @@ async function main() {
 
   if (cmd === "heal-check") {
     const r = JSON.parse(fs.readFileSync(reportJson, "utf8"));
+    const say = (e) => agentMode ? emit(e) : e.type === "mh_heal_close"
+      ? console.log(`closed   ${e.id} ${e.closed ? "caught WITH healing on by " + e.test : "still hidden"}${e.kane ? "\n          Kane: " + e.kane : ""}`)
+      : emit(e);
+    if (a.close && r.healCheck && !a.recheck) {
+      const model = createModel({ agent: a["agent-cli"] ?? cfg.agent, model: a.model ?? cfg.model, cacheDir: path.join(outDir, "cache"), replay: Boolean(a.replay) });
+      await closeHealed(cfg, r, { model, emit: say });
+      fs.writeFileSync(reportJson, JSON.stringify(r, null, 2));
+      fs.writeFileSync(path.join(path.dirname(reportJson), "index.html"), renderReport(r));
+      return 0;
+    }
     const h = await healCheck(cfg, r, {
       emit: (e) => agentMode ? emit(e) : console.log(`heal ON  ${e.id} ${e.masked ? "HIDDEN  (Kane healed around the bug)" : "caught"}  ${e.test}${e.kane ? "\n          Kane: " + e.kane : ""}`),
     });
