@@ -187,6 +187,11 @@
           "test": "mh-m02_test.md",
           "verdict": "failed",
           "kane": "Todo delete control does not appear on row hover - The row's delete control is not available after the required hover action, preventing a user from removing the todo and updating the item count."
+        },
+        {
+          "test": "mh-m04-heal_test.md",
+          "verdict": "failed",
+          "kane": "Todo footer counts completed item as remaining - The footer count does not exclude the completed Buy milk task after the delete action."
         }
       ],
       "status": "killed",
@@ -203,7 +208,23 @@
       "screenshot": "shots/M04.jpg",
       "closedInRound": 1,
       "diff": "--- store.js:121\n- const data = JSON.parse(memoryStorage[this._dbName]);\n+ const data = JSON.parse(memoryStorage[this._dbName].replace('\"completed\":true', '\"completed\":false'));",
-      "build": "builds/M04/"
+      "build": "builds/M04/",
+      "loop": [
+        {
+          "attempt": 1,
+          "check": "passes on the real app",
+          "verdict": "passed",
+          "kane": "selected the Completed filter on the todo app"
+        },
+        {
+          "attempt": 1,
+          "check": "fails on the bug",
+          "verdict": "failed",
+          "kane": "Todo footer counts completed item as remaining - The footer count does not exclude the completed Buy milk task after the delete action."
+        }
+      ],
+      "closedByLoop": true,
+      "loopAttempts": 1
     },
     {
       "file": "store.js",
@@ -615,6 +636,17 @@
         "masked": false,
         "kane": "Todo edit field remains visible after saving - The app saves the new todo text but does not leave edit mode when Enter is pressed or focus moves away."
       }
-    ]
+    ],
+    "closed": [
+      {
+        "id": "M04",
+        "closed": true,
+        "attempts": 1,
+        "test": "mh-m04-heal_test.md",
+        "kane": "Todo footer counts completed item as remaining - The footer count does not exclude the completed Buy milk task after the delete action.",
+        "message": "Final verification failed: \"Exactly two todos are listed, \"Buy milk\" and \"Pay rent\", the footer counter reads exactly \"1 item left\", and \"Buy milk\" is still shown as completed (struck through) with its checkbox ticked.\""
+      }
+    ],
+    "closeCredits": 85
   }
 }

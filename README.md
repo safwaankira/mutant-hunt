@@ -1,5 +1,7 @@
 # Mutant Hunt
 
+[![CI](https://github.com/safwaankira/mutant-hunt/actions/workflows/ci.yml/badge.svg)](https://github.com/safwaankira/mutant-hunt/actions/workflows/ci.yml)
+
 **Who tests your tests?** Mutant Hunt plants realistic bugs in your app, lets
 [Kane CLI](https://www.testmuai.com/kane-cli/) hunt them in a real browser, and hands
 every bug Kane misses back to your coding agent, which writes the Kane test that
@@ -16,6 +18,15 @@ diagnosis, e.g. *"Todo edit field remains visible after saving: after Enter save
 does not leave editing mode"* (96% confident) for a flipped `iscanceled` check. The 10th change was
 judged harmless, with the reason in the report. 51 Kane runs, 361 credits.
 Full report: [`examples/todomvc/mutant-hunt-report`](examples/todomvc/mutant-hunt-report/index.html).
+First public run: 17 Nov 2026 ([first commit `a000517`](https://github.com/safwaankira/mutant-hunt/commit/a000517)).
+
+**Then we turned Kane's healing back on.** `mutant-hunt heal-check` re-ran all 9 caught bugs with
+adaptive healing **on** (Kane's default). Healing hid **1 of 9**: M04, a store bug that un-completes a
+todo after a delete. The pattern was clean: all 8 bugs caught by a failed **check** (`assertion_failed`)
+stayed caught; the one caught only because a **replayed step broke** (`action_failed`) was healed away.
+`heal-check --close` sent M04 back to Claude, which wrote `mh-m04-heal_test.md` on the first try.
+With healing on, Kane now fails it and says *"Todo footer counts completed item as remaining"*.
+**All 9 bugs are caught with healing on or off.** 176.9 credits for the healing run.
 
 ```bash
 npm i -g @testmuai/kane-cli && kane-cli login --oauth
@@ -63,12 +74,33 @@ then goes a step further: it fixes the gaps it finds.
    **Kane's own diagnosis**: the failure title, root cause and screenshot that Kane's investigator seals
    into each run's evidence pack. `mutant-hunt-report/index.html` and `report.json`.
 
+## Findings for the Kane team
+
+From the real TodoMVC runs (hunt + healing check):
+
+- **Healing can hide a regression.** A test that only fails because a replayed step can't find its
+  element gets healed into a pass. A test that *checks* a value survives healing. Rule of thumb: every
+  bug you care about needs a check, not just a click. `heal-check` finds the tests that rely on clicks.
+- **Kane's RCA blamed the test in 4 of 9 real app bugs** (M02, M03, M06, M09: "test data" or
+  "automation" category) even though the app was what we broke. The failure titles were still right.
+- **The best diagnosis isn't in the `--agent` stream.** Title, root cause, confidence and screenshot
+  live only in the sealed evidence pack, so `src/kane.js` unzips it (`readEvidence()`).
+- **Replays emit almost no `run_end` summary**, so on a replay the evidence pack is the only record.
+
 ## Use it on your app
 
 ```bash
-npx mutant-hunt init      # writes mutant-hunt.config.json and kane/smoke_test.md
-npx mutant-hunt doctor    # Kane installed + signed in, agent CLI present
-npx mutant-hunt run       # or: run --agent for NDJSON
+npx github:safwaankira/mutant-hunt init      # writes mutant-hunt.config.json and kane/smoke_test.md
+npx github:safwaankira/mutant-hunt doctor    # Kane installed + signed in, agent CLI present
+npx github:safwaankira/mutant-hunt run       # or: run --agent for NDJSON
+npx github:safwaankira/mutant-hunt heal-check [--close]   # do your catches survive Kane's healing?
+```
+
+**Replay without an agent.** `run --replay` plants exactly the recorded bugs from
+`.mutant-hunt/cache`, with no agent calls. You only need Kane:
+
+```bash
+cd examples/todomvc && node ../../bin/mutant-hunt.js run --replay
 ```
 
 ```json
@@ -96,10 +128,10 @@ npx mutant-hunt run       # or: run --agent for NDJSON
 
 | Criterion | Where to look |
 |---|---|
-| Ships | `examples/todomvc`: a real app, real Kane runs, three commands above. Recorded run: `examples/todomvc/mutant-hunt-report/` |
-| Verified | Each caught bug in the report has Kane's diagnosis (title, root cause, confidence) and its screenshot of the broken page, read from Kane's evidence pack (`readEvidence()` in `src/kane.js`). Healing is off for every bug run |
-| Closed loop | `src/hunt.js` `closeOne()`: Kane's verdicts and root causes go into the agent's next prompt; the loop ends only when Kane proves pass-on-real and fail-on-bug. In the recorded run, M02 and M07 each took a second attempt after Kane's feedback |
-| Craft | `npx`-style CLI, `doctor`, `--agent` NDJSON + exit codes, Claude Code skill, prompt cache, `npm test` (fake Kane + fake agent, runs offline) |
+| Ships | `examples/todomvc`: a real app, real Kane runs, three commands above. `run --replay` reproduces the recorded bugs with Kane alone. Each bug has a "Try this broken build" link in the live report |
+| Verified | Each caught bug in the report has Kane's diagnosis (title, root cause, confidence) and its screenshot of the broken page, read from Kane's evidence pack (`readEvidence()` in `src/kane.js`). Healing is off for the hunt, then `heal-check` re-runs every catch with healing on (8/9 held, the 9th closed) |
+| Closed loop | `src/hunt.js` `closeOne()`: Kane's verdicts and root causes go into the agent's next prompt; the loop ends only when Kane proves pass-on-real and fail-on-bug. In the recorded run, M02 and M07 each took a second attempt after Kane's feedback. `heal-check --close` runs the same loop with healing on (M04) |
+| Craft | `npx`-style CLI, `doctor`, `--agent` NDJSON + exit codes, Claude Code skill, prompt cache, `npm test` (fake Kane + fake agent, runs offline), CI on Node 20 and 22 |
 
 **What was reused, honestly.** The bug-planting prompts and site finder are adapted from
 [LLMorpheus](https://github.com/neu-se/llmorpheus) (MIT, GitHub Next), see
@@ -107,6 +139,17 @@ npx mutant-hunt run       # or: run --agent for NDJSON
 ES6 example (MIT), changed only to load without a bundler. Everything else (the Kane runner, the
 hunt, the agent loop, the report, the skill) was written for the KaneCLI Online Hackathon, starting
 from this repo's first commit.
+
+## Limits
+
+- Bugs are planted in JavaScript source. CSS and server code are not mutated yet.
+- Kane runs cost credits: about 7 per Kane run (361 for the full hunt). Lower `maxMutants` for a first try.
+- "Equivalent" bugs (no visible change) are judged by the agent, with its reason shown in the report.
+  Check those yourself.
+
+**Why AI-planted bugs, not hand-written ones?** Hand-written bug patches test the bugs you already
+thought of. Mutant Hunt points an agent at any app's source and gets new bugs every run, then keeps
+the same ones in the cache so scores stay comparable.
 
 ## Licence
 
