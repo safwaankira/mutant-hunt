@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+JSON.stringify({ todos: [] })
+```
+This would result in different behavior because `remove` would start from an empty list instead of the saved one. Deleting any one todo would then wipe every todo from storage, and the list and the "items left" counter would both drop to zero.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+JSON.stringify({ todos: JSON.parse(memoryStorage[this._dbName]).todos.filter((t) => !t.completed) })
+```
+This would result in different behavior because every completed todo is dropped before the chosen todo is spliced out. Deleting one item would also quietly remove all completed items, so the "All" and "Completed" filters would show the wrong items.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+memoryStorage[this._dbName].replace('"completed":true', '"completed":false')
+```
+This would result in different behavior because removing a todo also un-completes the first completed todo still in storage. After a delete, that todo would show as active again, its checkbox would be unticked and the "items left" count would go up by one.
+
+DONE.

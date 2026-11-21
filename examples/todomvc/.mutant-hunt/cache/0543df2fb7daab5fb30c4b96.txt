@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+".new-todo"
+```
+This would result in different behavior because `$todoList` would point at the text `<input>` instead of the `<ul>`. Setting `innerHTML` on an input does nothing, so new todos are saved but never appear in the list. The click, double-click and blur handlers for items would also be attached to the input, so items can't be toggled, edited or removed.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+".todo-count"
+```
+This would result in different behavior because the todo items would be drawn inside the footer's counter `<span>`, not in the main list. The "N items left" text and the item list would keep overwriting each other, so the user would see a wrong count or items appearing in the wrong place.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+".main"
+```
+This would result in different behavior because `showEntries` would replace everything inside the `.main` section, including the toggle-all checkbox and its label, with bare `<li>` elements. After the first render the "mark all as complete" control is gone, and the items lose their `ul.todo-list` styling. Item events still fire because `.main` contains the items, so tests that only check clicks may not notice this mutant.
+
+DONE.

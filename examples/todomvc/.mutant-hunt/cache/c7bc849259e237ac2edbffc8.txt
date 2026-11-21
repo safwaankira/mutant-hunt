@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+JSON.stringify({ todos: [] })
+```
+This would result in different behavior because the callback always gets an empty list after a delete, even though the other todos are still in storage. Any view rendered from this callback shows no todos and a count of 0 until the page reloads.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+JSON.stringify({ todos: todos.slice(1) })
+```
+This would result in different behavior because the callback leaves out the first remaining todo as well as the deleted one. Deleting one item makes two disappear from the list, and the "items left" count drops by one too many.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+JSON.stringify({ todos: todos.filter((t) => !t.completed) })
+```
+This would result in different behavior because the callback leaves out every completed todo, even though they are still stored. After a delete, completed items vanish from the "All" and "Completed" views and from the completed count, so the "Clear completed" button can hide when it should still show.
+
+DONE.

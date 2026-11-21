@@ -1,0 +1,16 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Editing a todo saves on Enter and cancels on Escape
+
+## Add two todos
+Open http://localhost:4173/. Add a todo named "Buy eggs", then add a todo named "Mow lawn". Verify the list shows exactly two todos, "Buy eggs" and "Mow lawn", and the footer counter reads "2 items left".
+
+## Edit a todo and press Enter
+Double-click the todo "Buy eggs" to edit it, replace its text with "Buy cheese", and press Enter. Verify the list shows exactly two todos, "Buy cheese" and "Mow lawn", "Buy eggs" is not shown anywhere, and no todo is still in an editable text box.
+
+## Start an edit and press Escape
+Double-click the todo "Mow lawn" to edit it, replace its text with "Paint fence", and press Escape. Verify the list shows exactly two todos, "Buy cheese" and "Mow lawn", "Paint fence" is not shown anywhere, and the footer counter reads "2 items left".

@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+e.target.dataset.iscanceled
+```
+This would result in different behavior because the condition is reversed. Pressing Enter or clicking away no longer saves the edit, so the label keeps its old text and the item stays in edit mode. Pressing Escape, which should cancel, now saves whatever was typed.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+!e.target.dataset.iscancelled
+```
+This would result in different behavior because of the misspelled property name (`iscancelled` instead of `iscanceled`). That property is always `undefined`, so the check always passes. When the user types new text and presses Escape, the change is still saved instead of being thrown away.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+e.target.value && !e.target.dataset.iscanceled
+```
+This would result in different behavior because an edit with an empty title never reaches the handler. Normally, deleting all the text and pressing Enter removes the todo. With this change the item stays in the list and the item count stays the same.
+
+DONE.

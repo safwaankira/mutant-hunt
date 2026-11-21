@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+item.id
+```
+This would result in different behavior because each todo's label would show its numeric ID (for example "1700000000000") and not the text the user typed.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+item.title.slice(1)
+```
+This would result in different behavior because the first character of every title would be dropped. "Buy milk" would show as "uy milk", and a one-character todo would show as an empty label.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+item.title.toUpperCase()
+```
+This would result in different behavior because every todo label would be shown in capital letters ("BUY MILK" and not "Buy milk"). Any test that checks the text of a todo after adding or editing it would fail.
+
+DONE.

@@ -1,0 +1,16 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Deleting a todo removes it from the list and counter
+
+## Add two todos
+Open http://localhost:4173/. Add a todo named "Water plants", then add a todo named "Read book". Verify the footer counter reads "2 items left" and the list shows exactly two todos: "Water plants" and "Read book".
+
+## Delete one todo
+Hover over the todo "Water plants" and click its delete (×) button. Verify the list now shows exactly one todo, "Read book", "Water plants" is not shown anywhere, and the footer counter reads exactly "1 item left".
+
+## Clear a completed todo
+Tick the checkbox next to "Read book", then click "Clear completed". Verify the todo list is empty: "Read book" is not shown and no todos are visible.

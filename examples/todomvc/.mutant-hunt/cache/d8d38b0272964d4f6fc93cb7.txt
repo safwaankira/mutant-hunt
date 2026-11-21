@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+"clearCompletedButton"
+```
+This would result in different behavior because the `main` and `footer` sections would no longer be shown or hidden based on the total number of todos. This call would instead re-render the "Clear completed" button using only `{ visible }`, with `completed` undefined. So the button would appear whenever any todos exist, even if none are completed.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+"toggleAll"
+```
+This would result in different behavior because the toggle-all checkbox would be rendered again with `checked` undefined. That clears the checked state set just before, so "mark all as complete" would look unchecked even when every todo is completed. The list and footer would also never be shown or hidden as todos are added or removed.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+"contentBlockvisibility"
+```
+This would result in different behavior because the command name has the wrong capitalisation, so the view doesn't recognise it and never updates the `main` and `footer` sections. After the first todo is added, the list and footer (count, filters) would stay hidden. After the last todo is removed, they would stay visible.
+
+DONE.

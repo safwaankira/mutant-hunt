@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+undefined
+```
+This would result in different behavior because, with no id, storage treats the save as a new item. Editing or toggling a todo would then add a duplicate todo instead of changing the original, so the list shows an extra item and the counts go up.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+id + 1
+```
+This would result in different behavior because the change is applied to the next todo, not the one the user edited or toggled. The wrong item gets the new title or completed state. If the edited todo is the last one, the update is lost.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+callback
+```
+This would result in different behavior because a function is passed where the id should be. It is truthy, so storage takes the update path, but no todo's id matches it. The edit or toggle is never saved, and after a re-render or reload the todo is back to its old state.
+
+DONE.

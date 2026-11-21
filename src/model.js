@@ -11,7 +11,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-export function createModel({ agent = "claude", model, cacheDir, timeoutMs = 240_000 }) {
+export function createModel({ agent = "claude", model, cacheDir, timeoutMs = 240_000, replay = false }) {
   const call = {
     claude: (system, prompt) =>
       run("claude", ["-p", "--output-format", "text", ...(model ? ["--model", model] : []), "--append-system-prompt", system], prompt, timeoutMs),
@@ -25,11 +25,12 @@ export function createModel({ agent = "claude", model, cacheDir, timeoutMs = 240
   if (!call) throw new Error(`Unknown agent "${agent}". Use claude, codex, openai or none.`);
 
   return {
-    name: agent + (model ? `:${model}` : ""),
+    name: agent + (model ? `:${model}` : "") + (replay ? " (replay)" : ""),
     async complete(system, prompt, { cache = true } = {}) {
       const key = crypto.createHash("sha256").update(`${agent}|${model}|${system}|${prompt}`).digest("hex").slice(0, 24);
       const file = cacheDir && path.join(cacheDir, `${key}.txt`);
-      if (cache && file && fs.existsSync(file)) return fs.readFileSync(file, "utf8");
+      if ((cache || replay) && file && fs.existsSync(file)) return fs.readFileSync(file, "utf8");
+      if (replay) throw new Error("replay: no saved agent answer for this prompt (run without --replay to ask the agent)");
       const text = await call(system, prompt);
       if (file) {
         fs.mkdirSync(cacheDir, { recursive: true });

@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+completedTodos > 1
+```
+This would result in different behavior because when exactly one todo is completed, the "Clear completed" button text is empty, so the user can't see the button to clear that one item.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+completedTodos >= 0
+```
+This would result in different behavior because "Clear completed" shows even when no todos are completed, including when the list is empty.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+completedTodos < 0
+```
+This would result in different behavior because the count is never negative, so "Clear completed" never shows, no matter how many todos are completed.
+
+DONE.

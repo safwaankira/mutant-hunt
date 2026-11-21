@@ -97,3 +97,47 @@ test("reads Kane's diagnosis and screenshot from an evidence pack", async () => 
   assert.equal(e.screenshotEntry, "tests/guard/steps/9-1-3/screenshot.jpg");
   assert.ok(packEntry(e.pack, e.screenshotEntry, { binary: true }).length > 0);
 });
+
+test("heal-check replays caught bugs with healing on and leaves recordings untouched", async () => {
+  const { healCheck, writeBuilds } = await import("../src/heal.js");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mh-heal-"));
+  fs.cpSync(path.join(FIX, "app"), path.join(root, "app"), { recursive: true });
+  fs.cpSync(path.join(FIX, "kane"), path.join(root, "kane"), { recursive: true });
+  const rec = path.join(root, "kane", "output-seed");
+  fs.mkdirSync(rec, { recursive: true });
+  fs.writeFileSync(path.join(rec, "Result.md"), "original recording");
+  const code = fs.readFileSync(path.join(root, "app/cart.js"), "utf8");
+  const start = code.indexOf("item.qty > 0");
+  const report = { mutants: [
+    { id: "M01", file: "cart.js", line: 4, start, end: start + "item.qty > 0".length, orig: "item.qty > 0", replacement: "item.qty >= 0", status: "killed", killedBy: "seed_test.md" },
+    { id: "M02", file: "cart.js", line: 9, start: 0, end: 0, orig: "", replacement: "", status: "survived" },
+  ] };
+  const seen = [];
+  const h = await healCheck({ root, app: "app", tests: "kane", port: 4198, mutate: ["cart.js"] }, report, {
+    runKane: async (file, opts) => {
+      seen.push({ heal: opts.heal, planted: fs.readFileSync(path.join(root, ".mutant-hunt/app/cart.js"), "utf8").includes("item.qty >= 0") });
+      fs.writeFileSync(path.join(rec, "Result.md"), "healed recording"); // healing rewrites the recording
+      return { verdict: "passed", credits: 2, evidence: null, oneLiner: "healed" };
+    },
+  });
+  assert.deepEqual(seen, [{ heal: true, planted: true }], "only the caught bug is replayed, planted, with healing on");
+  assert.equal(h.checked, 1);
+  assert.equal(h.masked, 1);
+  assert.equal(fs.readFileSync(path.join(rec, "Result.md"), "utf8"), "original recording", "recording restored");
+  writeBuilds({ root, app: "app", mutate: ["cart.js"] }, report, path.join(root, "out"));
+  assert.match(fs.readFileSync(path.join(root, "out/builds/M01/cart.js"), "utf8"), /item\.qty >= 0/);
+  assert.match(fs.readFileSync(path.join(root, "out/builds/clean/cart.js"), "utf8"), /item\.qty > 0/);
+});
+
+test("replay mode answers only from saved agent answers", async () => {
+  const { createModel } = await import("../src/model.js");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mh-cache-"));
+  const live = createModel({ agent: "none", cacheDir: dir });
+  await assert.rejects(() => live.complete("s", "p"), /No agent configured/);
+  const crypto = await import("node:crypto");
+  const key = crypto.createHash("sha256").update("claude|undefined|s|p").digest("hex").slice(0, 24);
+  fs.writeFileSync(path.join(dir, key + ".txt"), "saved answer");
+  const replay = createModel({ agent: "claude", cacheDir: dir, replay: true });
+  assert.equal(await replay.complete("s", "p"), "saved answer");
+  await assert.rejects(() => replay.complete("s", "other"), /replay: no saved agent answer/);
+});

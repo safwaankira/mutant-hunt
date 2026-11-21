@@ -1,0 +1,1 @@
+EQUIVALENT: the only caller of remove (controller.js:106) passes a callback that ignores the list it gets and removes the row by id, so the empty list never reaches the screen.

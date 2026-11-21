@@ -1,0 +1,19 @@
+---
+mode: testing
+max_steps: 30
+url: http://localhost:4173/
+---
+
+# Completing a todo updates the counter and filters
+
+## Add two todos
+Open http://localhost:4173/. Add a todo named "Buy bread", then add a todo named "Call mom". Verify the footer counter reads "2 items left".
+
+## Complete one todo
+Tick the checkbox next to "Buy bread". Verify the footer counter reads exactly "1 item left" and the list still shows exactly two todos: "Buy bread" and "Call mom".
+
+## Check the Active filter
+Click the "Active" filter. Verify exactly one todo is shown, "Call mom", and "Buy bread" is not shown.
+
+## Check the Completed filter
+Click the "Completed" filter. Verify exactly one todo is shown, "Buy bread", and "Call mom" is not shown.

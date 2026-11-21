@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+{ todos: [{ id: 0, title: "", completed: false }] }
+```
+This would result in different behavior because the store starts with one empty todo instead of an empty list. The user would see a blank item in the list and the counter would read "1 item left" before they add anything.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+{ todos: [{ id: 0, title: "data", completed: true }] }
+```
+This would result in different behavior because a fresh app would already show a completed todo called "data". The footer and the "Clear completed" button would appear, and "Completed" filter views would contain an item that the user never created.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+data.todos
+```
+This would result in different behavior because the store saves only the bare array, not an object with a `todos` field. `JSON.parse(...).todos` then returns `undefined`, so the list cannot load and adding the first todo fails because `todos.push` is called on `undefined`.
+
+DONE.

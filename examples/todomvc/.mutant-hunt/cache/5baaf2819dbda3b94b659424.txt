@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+item.id
+```
+This would result in different behavior because the edited todo's label is saved as its numeric ID instead of the text the user typed. Because `editItemSave` calls `title.trim()`, a numeric ID would throw before anything is saved; if the view passes the ID as a string, the list shows something like "1715..." instead of the new title.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+""
+```
+This would result in different behavior because the trimmed title is always empty, so `editItemSave` goes to its `else` branch and calls `removeItem`. Every edit the user confirms deletes the todo instead of renaming it, and the item count goes down by one.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+item.title.slice(1)
+```
+This would result in different behavior because the first character of the edited title is dropped. For example, "Buy milk" is saved and shown as "uy milk". A one-character title becomes empty, so the item is deleted.
+
+DONE.

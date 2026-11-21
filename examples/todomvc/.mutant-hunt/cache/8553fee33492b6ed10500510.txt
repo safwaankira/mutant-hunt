@@ -1,0 +1,1 @@
+EQUIVALENT: the only code that calls remove passes a callback that ignores the list it receives (`() => this.view.render("removeItem", id)`), and storage is still updated correctly, so nothing changes on screen.

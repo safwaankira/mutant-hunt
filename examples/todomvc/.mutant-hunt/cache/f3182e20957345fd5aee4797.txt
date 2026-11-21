@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+{ id: _itemId(e.target) + 1 }
+```
+This would result in different behavior because clicking the destroy button sends the id plus one. The app then deletes a different todo, or nothing at all if no todo has that id, while the clicked one stays in the list.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+{ id: _itemId(this.$todoList.firstElementChild) }
+```
+This would result in different behavior because the arrow function's `this` is the View, so the id always comes from the first `<li>` in the list. Clicking × on any todo deletes the top item instead of the one clicked.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+{ id: parseInt(e.target.dataset.id, 10) }
+```
+This would result in different behavior because the `.destroy` button has no `data-id` of its own (only the parent `<li>` does), so the id becomes `NaN`. Nothing gets removed and the todo count doesn't change.
+
+DONE.

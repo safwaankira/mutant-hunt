@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+() => {}
+```
+This would result in different behavior because the item is removed from storage but the real callback never runs. The view doesn't refresh, so the deleted todo stays on screen and the item counter stays the same until the page is reloaded.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+() => this.storage.drop(callback)
+```
+This would result in different behavior because deleting one todo then wipes all of storage before the callback runs. A single click on "destroy" clears the whole list and sets the counter to 0.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+() => this.storage.remove(id + 1, callback)
+```
+This would result in different behavior because after the chosen todo is removed, the todo with the next ID is removed too. Deleting one item makes a second one disappear, so the list and the "items left" count are wrong.
+
+DONE.

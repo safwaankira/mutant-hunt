@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+1
+```
+This would result in different behavior because the route's second letter gets capitalised instead of its first. "All" becomes "Lll", so `this[`show${activeRoute}`]` looks up `showLll`, which doesn't exist, and the call throws a TypeError. `_updateCount()` runs before that call, so the "items left" counter still updates, but the list never redraws. A newly added todo wouldn't appear in the list even though the count goes up.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+active.length - 1
+```
+This would result in different behavior because the last letter gets capitalised and then added in front of the rest of the string. "All" becomes "Lll" and "Active" becomes "Ective", so no matching `show…` method exists. Switching filters or adding or completing a todo leaves the list stale, while the counter and the "Clear completed" button still update.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+-1
+```
+This would result in different behavior because `charAt(-1)` returns an empty string, which drops the first letter. "All" becomes "ll" and "Completed" becomes "ompleted", so the lookup fails and the todo list is never redrawn for any filter. The footer count still changes, so the screen shows a count that doesn't match the visible list.
+
+DONE.

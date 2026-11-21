@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+queryType !== "function"
+```
+This would result in different behavior because the condition is flipped. A plain `model.read(callback)` call, which the app uses to load the full list, now goes to the `else` branch. That runs `storage.find(callback, undefined)`, so the list never renders. A filtered call like `read({ completed: true }, cb)` now goes to `findAll` with the query object passed in as the callback. The Active/Completed views break, and the user sees an empty or wrong list.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+queryType === "object"
+```
+This would result in different behavior because the "return everything" branch now runs for object queries instead of function queries. Filtered views such as Active or Completed would pass their filter object to `findAll` as the callback, so the filtered list never shows. A bare `read(callback)` would go to the `else` branch and call `storage.find` with the function as the query and no callback, so the "All" list stays blank too.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+queryType === "undefined"
+```
+This would result in different behavior because `read(callback)` no longer counts as a "find all" request: a function's type is `"function"`, not `"undefined"`. The call goes to the `else` branch, `storage.find` gets the function as its query and no callback, and nothing is shown. After a page refresh, saved todos would seem to be gone even though they are still in storage.
+
+DONE.

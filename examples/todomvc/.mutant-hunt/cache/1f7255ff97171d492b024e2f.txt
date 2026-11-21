@@ -1,0 +1,19 @@
+Option 1: The PLACEHOLDER can be replaced with:
+```
+!item.completed
+```
+This would result in different behavior because the "completed" class would go on every active todo and be missing from every completed one. Active items would show strike-through styling and completed items would look active. The checkbox state would still be correct, so the checkbox and the styling would disagree.
+
+Option 2: The PLACEHOLDER can be replaced with:
+```
+item.checked
+```
+This would result in different behavior because todo items have no `checked` property, so the value is always `undefined`. No `<li>` would ever get the "completed" class. Completed todos would stay ticked but never get the strike-through, and selectors such as `li.completed` would find nothing.
+
+Option 3: The PLACEHOLDER can be replaced with:
+```
+index === 0
+```
+This would result in different behavior because only the first rendered item (the newest todo, since the list is reversed) would get the "completed" class, whatever its real state. That item would always look done, and every other completed todo would lose its styling.
+
+DONE.
