@@ -544,5 +544,77 @@
   ],
   "credits": 361.5,
   "kaneRuns": 51,
-  "cleanBuild": "builds/clean/"
+  "cleanBuild": "builds/clean/",
+  "healCheck": {
+    "finishedAt": "2026-11-21T12:24:43.304Z",
+    "checked": 9,
+    "masked": 1,
+    "stillCaught": 8,
+    "credits": 176.9,
+    "results": [
+      {
+        "id": "M01",
+        "test": "mh-m01_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Footer active-item count fails to update after completing a todo - Completing a todo changes its appearance, but the footer count does not subtract the completed item."
+      },
+      {
+        "id": "M02",
+        "test": "mh-m02_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Todo-list fixture contains unexpected Buy milk row - The test opened a todo list containing three visible rows instead of the expected two. This points to incorrect or leftover test data rather than a failure caused during this run."
+      },
+      {
+        "id": "M03",
+        "test": "mh-m01_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Walk the dog is pre-marked completed in the todo fixture - The test started with Walk the dog already marked done, even though the scenario expects it to remain active. As a result, the Completed view cannot contain only Buy milk."
+      },
+      {
+        "id": "M04",
+        "test": "mh-m02_test.md",
+        "verdict": "passed",
+        "masked": true,
+        "kane": ""
+      },
+      {
+        "id": "M06",
+        "test": "add_todos_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "New todos render as numeric IDs instead of entered text - When a todo is added, the list is using its numeric identifier as the displayed text rather than the text the user entered."
+      },
+      {
+        "id": "M07",
+        "test": "mh-m07_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Todo completion fixture does not match verification target - The starting todo data was not set up for this check: Pay rent and Walk the dog were shown as completed, while Buy milk was not. This shows an incorrect or leftover test state, not a failure caused by observing the page."
+      },
+      {
+        "id": "M08",
+        "test": "mh-m08_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Clear completed button missing after completing a todo - The todo app updated the completed state and remaining-item count but did not display the required Clear completed footer button."
+      },
+      {
+        "id": "M09",
+        "test": "mh-m02_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Todo-list fixture does not match expected state - The page showed two rows, “Pay rent” and “Buy milk,” while the check expected “Walk the dog” and “Pay rent.” The test assumed a starting list state that was not present."
+      },
+      {
+        "id": "M10",
+        "test": "mh-m10_test.md",
+        "verdict": "failed",
+        "masked": false,
+        "kane": "Todo edit field remains visible after saving - The app saves the new todo text but does not leave edit mode when Enter is pressed or focus moves away."
+      }
+    ]
+  }
 }
