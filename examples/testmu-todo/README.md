@@ -16,3 +16,6 @@ node ../../bin/mutant-hunt.js run  # needs Kane CLI signed in and Claude Code
 The app is fetched at run time, not committed here, because its repo has no licence file.
 `"sites": "extended"` in the config also plants bugs in assigned, stored and returned values,
 since this app keeps most of its logic there (6 sites by default, 17 extended).
+
+Upstream: the checks behind these catches are proposed to TestMu's Python sample in
+[LambdaTest/python-selenium-sample#25](https://github.com/LambdaTest/python-selenium-sample/pull/25).

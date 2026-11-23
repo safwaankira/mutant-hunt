@@ -26,6 +26,8 @@ sample test (tick `li1` and `li2`, add a task, check the heading), ported step f
 Claude planted 8 bugs. **The official sample caught 0.** Claude wrote 3 Kane tests and Kane then caught
 **all 8**, e.g. *"Task counter reports completion while tasks are unchecked"*. 24 Kane runs, 127 credits.
 Report: [`examples/testmu-todo/mutant-hunt-report`](examples/testmu-todo/mutant-hunt-report/index.html).
+We sent the missing checks upstream as [LambdaTest/python-selenium-sample#25](https://github.com/LambdaTest/python-selenium-sample/pull/25),
+after running it in Chrome: it passes on TestMu's live playground and fails on the counter bug the original misses.
 
 **Then we turned Kane's healing back on.** `mutant-hunt heal-check` re-ran all 9 caught bugs with
 adaptive healing **on** (Kane's default). Healing hid **1 of 9**: M04, a store bug that un-completes a
