@@ -20,6 +20,13 @@ judged harmless, with the reason in the report. 51 Kane runs, 361 credits.
 Full report: [`examples/todomvc/mutant-hunt-report`](examples/todomvc/mutant-hunt-report/index.html).
 First public run: 17 Nov 2026 ([first commit `a000517`](https://github.com/safwaankira/mutant-hunt/commit/a000517)).
 
+**Then we ran it on TestMu AI's own sample app.** [`examples/testmu-todo`](examples/testmu-todo/) takes
+TestMu's [sample to-do app](https://github.com/LambdaTest/sample-todo-app) and their official Selenium
+sample test (tick `li1` and `li2`, add a task, check the heading), ported step for step to Kane.
+Claude planted 8 bugs. **The official sample caught 0.** Claude wrote 3 Kane tests and Kane then caught
+**all 8**, e.g. *"Task counter reports completion while tasks are unchecked"*. 24 Kane runs, 127 credits.
+Report: [`examples/testmu-todo/mutant-hunt-report`](examples/testmu-todo/mutant-hunt-report/index.html).
+
 **Then we turned Kane's healing back on.** `mutant-hunt heal-check` re-ran all 9 caught bugs with
 adaptive healing **on** (Kane's default). Healing hid **1 of 9**: M04, a store bug that un-completes a
 todo after a delete. The pattern was clean: all 8 bugs caught by a failed **check** (`assertion_failed`)

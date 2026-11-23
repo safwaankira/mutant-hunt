@@ -1,0 +1,418 @@
+{
+  "app": "TestMu AI sample to-do app",
+  "url": "http://localhost:4174/",
+  "agent": "claude",
+  "finishedAt": "2026-11-23T16:17:12.348Z",
+  "baseline": [
+    {
+      "test": "official_sample_test.md",
+      "verdict": "passed",
+      "oneLiner": "updated the to-do list on TestMu AI To-Do"
+    }
+  ],
+  "mutants": [
+    {
+      "file": "app.js",
+      "line": 8,
+      "start": 404,
+      "end": 409,
+      "feature": "property",
+      "orig": "false",
+      "replacement": "true",
+      "why": "the first item, \"Complete initial setup\", would load as already done. Its checkbox would start checked and it would show the done styling. The remaining count would show 4 of 5 instead of 5 of 5",
+      "id": "M01",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Initial task is pre-completed and remaining count is wrong - The app loaded the first task as completed even though the required starting state is for it to be unchecked and not crossed out."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "loop": [
+        {
+          "attempt": 1,
+          "check": "passes on the real app",
+          "verdict": "passed",
+          "kane": "completed the initial setup task on localhost"
+        },
+        {
+          "attempt": 1,
+          "check": "fails on the bug",
+          "verdict": "failed",
+          "kane": "Initial task is pre-completed and remaining count is wrong - The app loaded the first task as completed even though the required starting state is for it to be unchecked and not crossed out."
+        }
+      ],
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Initial task is pre-completed and remaining count is wrong - The app loaded the first task as completed even though the required starting state is for it to be unchecked and not crossed out.",
+      "kane": {
+        "title": "Initial task is pre-completed and remaining count is wrong",
+        "rootCause": "The app loaded the first task as completed even though the required starting state is for it to be unchecked and not crossed out.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.94,
+        "message": "assertion_failed: @ step 5"
+      },
+      "screenshot": "shots/M01.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- app.js:8\n- { text: 'Complete initial setup', done: false, name: 'li1' },\n+ { text: 'Complete initial setup', done: true, name: 'li1' },",
+      "build": "builds/M01/"
+    },
+    {
+      "file": "app.js",
+      "line": 9,
+      "start": 493,
+      "end": 498,
+      "feature": "property",
+      "orig": "false",
+      "replacement": "true",
+      "why": "\"Deploy to staging environment\" would start out marked as done. Its checkbox would load checked, probably with the done styling, and the remaining count would show 4 of 5 instead of 5 of 5",
+      "id": "M02",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Default task list starts with a completed task - The live page starts with \"Deploy to staging environment\" already completed, so its counter shows four remaining tasks rather than five."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Default task list starts with a completed task - The live page starts with \"Deploy to staging environment\" already completed, so its counter shows four remaining tasks rather than five.",
+      "kane": {
+        "title": "Default task list starts with a completed task",
+        "rootCause": "The live page starts with \"Deploy to staging environment\" already completed, so its counter shows four remaining tasks rather than five.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.94,
+        "message": "assertion_failed: @ step 5"
+      },
+      "screenshot": "shots/M02.jpg",
+      "closedInRound": 1,
+      "diff": "--- app.js:9\n- { text: 'Deploy to staging environment', done: false, name: 'li2' },\n+ { text: 'Deploy to staging environment', done: true, name: 'li2' },",
+      "build": "builds/M02/"
+    },
+    {
+      "file": "app.js",
+      "line": 11,
+      "start": 657,
+      "end": 662,
+      "feature": "property",
+      "orig": "false",
+      "replacement": "true",
+      "why": "\"Review feedback from team\" would load already checked, possibly shown with strikethrough. The remaining counter would also read \"4 of 5\" instead of \"5 of 5\"",
+      "id": "M03",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Recorded task-counter baseline no longer matches live state - The replay started with a task list state different from the state assumed by the recording. “Review feedback from team” is already complete, leaving four tasks remaining, while the target initial-setup task is still unchecked."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Recorded task-counter baseline no longer matches live state - The replay started with a task list state different from the state assumed by the recording. “Review feedback from team” is already complete, leaving four tasks remaining, while the target initial-setup task is still unchecked.",
+      "kane": {
+        "title": "Recorded task-counter baseline no longer matches live state",
+        "rootCause": "The replay started with a task list state different from the state assumed by the recording. “Review feedback from team” is already complete, leaving four tasks remaining, while the target initial-setup task is still unchecked.",
+        "category": "automation_bug/state_transition_bug",
+        "confidence": 0.83,
+        "message": "assertion_failed: @ step 5"
+      },
+      "screenshot": "shots/M03.jpg",
+      "closedInRound": 1,
+      "diff": "--- app.js:11\n- { text: 'Review feedback from team', done: false, name: 'li4' },\n+ { text: 'Review feedback from team', done: true, name: 'li4' },",
+      "build": "builds/M03/"
+    },
+    {
+      "file": "app.js",
+      "line": 12,
+      "start": 747,
+      "end": 752,
+      "feature": "property",
+      "orig": "false",
+      "replacement": "true",
+      "why": "the fifth item starts out checked and styled as done. The remaining counter would show \"4 of 5 remaining\" instead of \"5 of 5\". A test that checks the initial count or that all five checkboxes start unchecked would catch this",
+      "id": "M04",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Default task list starts with a completed task - One task is already marked complete when the list first opens, so the displayed remaining-task count is too low."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Default task list starts with a completed task - One task is already marked complete when the list first opens, so the displayed remaining-task count is too low.",
+      "kane": {
+        "title": "Default task list starts with a completed task",
+        "rootCause": "One task is already marked complete when the list first opens, so the displayed remaining-task count is too low.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 5"
+      },
+      "screenshot": "shots/M04.jpg",
+      "closedInRound": 1,
+      "diff": "--- app.js:12\n- { text: 'Prepare for production release', done: false, name: 'li5' }\n+ { text: 'Prepare for production release', done: true, name: 'li5' }",
+      "build": "builds/M04/"
+    },
+    {
+      "file": "app.js",
+      "line": 17,
+      "start": 920,
+      "end": 988,
+      "feature": "if",
+      "orig": "sampleList.sampletodoText && sampleList.sampletodoText.trim() !== ''",
+      "replacement": "sampleList.sampletodoText && sampleList.sampletodoText.trim().length > 1",
+      "why": "the length check is off by one. A valid one-character to-do (e.g. \"A\" or \"5\") is rejected, so the list and the remaining count don't change. Inputs of two or more characters still work, so tests that only use longer text won't catch it",
+      "id": "M05",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m05_test.md",
+          "verdict": "failed",
+          "kane": "Add button leaves typed task out of list - The Add action did not add the entered task to the to-do list."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "loop": [
+        {
+          "attempt": 1,
+          "check": "passes on the real app",
+          "verdict": "passed",
+          "kane": "added a task on the local to-do page"
+        },
+        {
+          "attempt": 1,
+          "check": "fails on the bug",
+          "verdict": "failed",
+          "kane": "Add button leaves typed task out of list - The Add action did not add the entered task to the to-do list."
+        }
+      ],
+      "killedBy": "mh-m05_test.md",
+      "evidence": "Add button leaves typed task out of list - The Add action did not add the entered task to the to-do list.",
+      "kane": {
+        "title": "Add button leaves typed task out of list",
+        "rootCause": "The Add action did not add the entered task to the to-do list.",
+        "category": "application_issue/functional_defect",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M05.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- app.js:17\n- if (sampleList.sampletodoText && sampleList.sampletodoText.trim() !== '') {\n+ if (sampleList.sampletodoText && sampleList.sampletodoText.trim().length > 1) {",
+      "build": "builds/M05/"
+    },
+    {
+      "file": "app.js",
+      "line": 20,
+      "start": 1141,
+      "end": 1146,
+      "feature": "property",
+      "orig": "false",
+      "replacement": "true",
+      "why": "every new to-do would be added already checked (shown done, often struck through). The \"remaining\" count would not go up when an item is added, so a user adding a task to a list with 5 open items would still see \"5 of 6 remaining\"",
+      "id": "M06",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m05_test.md",
+          "verdict": "failed",
+          "kane": "Newly added task is marked complete - The app creates the new task with its completed box selected, so the remaining-task count is reduced immediately."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m05_test.md",
+      "evidence": "Newly added task is marked complete - The app creates the new task with its completed box selected, so the remaining-task count is reduced immediately.",
+      "kane": {
+        "title": "Newly added task is marked complete",
+        "rootCause": "The app creates the new task with its completed box selected, so the remaining-task count is reduced immediately.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M06.jpg",
+      "closedInRound": 1,
+      "diff": "--- app.js:20\n- done: false,\n+ done: true,",
+      "build": "builds/M06/"
+    },
+    {
+      "file": "app.js",
+      "line": 23,
+      "start": 1305,
+      "end": 1307,
+      "feature": "assign",
+      "orig": "''",
+      "replacement": "sampleList.sampletodoText",
+      "why": "the input is never cleared. After you click Add, the text you just typed stays in the box. Clicking Add again creates a duplicate to-do",
+      "id": "M07",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m05_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m07_test.md",
+          "verdict": "failed",
+          "kane": "Task entry field remains populated after adding a task - After the task is added, the page leaves “Buy milk” in the entry box instead of resetting it."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "loop": [
+        {
+          "attempt": 1,
+          "check": "passes on the real app",
+          "verdict": "passed",
+          "kane": "added Buy milk to the to-do list on localhost"
+        },
+        {
+          "attempt": 1,
+          "check": "fails on the bug",
+          "verdict": "failed",
+          "kane": "Task entry field remains populated after adding a task - After the task is added, the page leaves “Buy milk” in the entry box instead of resetting it."
+        }
+      ],
+      "killedBy": "mh-m07_test.md",
+      "evidence": "Task entry field remains populated after adding a task - After the task is added, the page leaves “Buy milk” in the entry box instead of resetting it.",
+      "kane": {
+        "title": "Task entry field remains populated after adding a task",
+        "rootCause": "After the task is added, the page leaves “Buy milk” in the entry box instead of resetting it.",
+        "category": "application_issue/functional_defect",
+        "confidence": 0.97,
+        "message": "assertion_failed: @ step 9"
+      },
+      "screenshot": "shots/M07.jpg",
+      "closedByLoop": true,
+      "loopAttempts": 1,
+      "diff": "--- app.js:23\n- sampleList.sampletodoText = ''; // Clear the input field\n+ sampleList.sampletodoText = sampleList.sampletodoText; // Clear the input field",
+      "build": "builds/M07/"
+    },
+    {
+      "file": "app.js",
+      "line": 33,
+      "start": 1789,
+      "end": 1804,
+      "feature": "ternary",
+      "orig": "sampletodo.done",
+      "replacement": "!sampletodo.done",
+      "why": "the logic is flipped, so the counter shows how many items are done instead of how many are left. With the starting list it reads \"0 of 5 remaining\" instead of \"5 of 5 remaining\"",
+      "id": "M08",
+      "runs": [
+        {
+          "test": "official_sample_test.md",
+          "verdict": "passed",
+          "kane": ""
+        },
+        {
+          "test": "mh-m01_test.md",
+          "verdict": "failed",
+          "kane": "Task counter reports completion while tasks are unchecked - The completion message and remaining-task count are not being kept in sync with the actual checkbox states."
+        }
+      ],
+      "status": "killed",
+      "round0": "survived",
+      "killedBy": "mh-m01_test.md",
+      "evidence": "Task counter reports completion while tasks are unchecked - The completion message and remaining-task count are not being kept in sync with the actual checkbox states.",
+      "kane": {
+        "title": "Task counter reports completion while tasks are unchecked",
+        "rootCause": "The completion message and remaining-task count are not being kept in sync with the actual checkbox states.",
+        "category": "application_issue/ui_state_mismatch",
+        "confidence": 0.98,
+        "message": "assertion_failed: @ step 5"
+      },
+      "screenshot": "shots/M08.jpg",
+      "closedInRound": 1,
+      "diff": "--- app.js:33\n- count += sampletodo.done ? 0 : 1;\n+ count += !sampletodo.done ? 0 : 1;",
+      "build": "builds/M08/"
+    }
+  ],
+  "before": {
+    "killed": 0,
+    "survived": 8,
+    "equivalent": 0,
+    "errors": 0,
+    "score": 0
+  },
+  "after": {
+    "killed": 8,
+    "survived": 0,
+    "equivalent": 0,
+    "errors": 0,
+    "score": 100
+  },
+  "added": [
+    {
+      "test": "mh-m01_test.md",
+      "forMutant": "M01",
+      "attempts": 1
+    },
+    {
+      "test": "mh-m05_test.md",
+      "forMutant": "M05",
+      "attempts": 1
+    },
+    {
+      "test": "mh-m07_test.md",
+      "forMutant": "M07",
+      "attempts": 1
+    }
+  ],
+  "credits": 127.4,
+  "kaneRuns": 24,
+  "cleanBuild": "builds/clean/"
+}
