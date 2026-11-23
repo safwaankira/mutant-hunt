@@ -75,7 +75,7 @@ export async function hunt(cfg, { model, runKane = realRunKaneTest, emit = () =>
 
     // 2. Plant bugs.
     const { mutants, sources, totalSites } = await generateMutants({
-      appDir: work, files: cfg.mutate, model, maxMutants: cfg.maxMutants, log: emit,
+      appDir: work, files: cfg.mutate, model, maxMutants: cfg.maxMutants, sites: cfg.sites, log: emit,
     });
     emit({ type: "mh_mutants", count: mutants.length, sites: totalSites });
 

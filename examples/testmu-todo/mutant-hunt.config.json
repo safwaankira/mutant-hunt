@@ -1,0 +1,14 @@
+{
+  "name": "TestMu AI sample to-do app",
+  "describe": "TestMu AI's sample to-do app (AngularJS): five starting tasks with checkboxes named li1..li5, a 'You have N of M tasks remaining.' counter that changes to 'All tasks completed! Great work!' at zero, completed tasks struck through, and an input #sampletodotext with an Add button #addbutton that appends a new task",
+  "app": "app",
+  "mutate": [
+    "app.js"
+  ],
+  "tests": "kane",
+  "port": 4174,
+  "maxMutants": 8,
+  "rounds": 2,
+  "agent": "claude",
+  "sites": "extended"
+}

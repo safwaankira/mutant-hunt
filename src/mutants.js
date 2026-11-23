@@ -9,13 +9,13 @@ import {
   applySubstitution, isSyntacticallyValid, pickSites, SYSTEM_PROMPT,
 } from "./sites.js";
 
-export async function generateMutants({ appDir, files, model, maxMutants, optionsPerSite = 1, concurrency = 4, log = () => {} }) {
+export async function generateMutants({ appDir, files, model, maxMutants, sites: siteMode, optionsPerSite = 1, concurrency = 4, log = () => {} }) {
   const sources = {};
   const sitesByFile = {};
   for (const rel of files) {
     const code = fs.readFileSync(path.join(appDir, rel), "utf8");
     sources[rel] = code;
-    sitesByFile[rel] = findSites(rel, code);
+    sitesByFile[rel] = findSites(rel, code, { extended: siteMode === "extended" });
   }
   const total = Object.values(sitesByFile).reduce((n, s) => n + s.length, 0);
   // ask for ~1.5x the budget: some completions are invalid or duplicates

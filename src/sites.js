@@ -26,7 +26,7 @@ export function parseCode(code) {
 }
 
 /** Every mutation site in one file: {file, feature, component, start, end, orig, line}. */
-export function findSites(file, code) {
+export function findSites(file, code, { extended = false } = {}) {
   const ast = parseCode(code);
   const sites = [];
   const add = (feature, component, node) => {
@@ -52,6 +52,11 @@ export function findSites(file, code) {
       add("call", "callee", callee);
       args.forEach((a, i) => add("call", "arg" + i, a));
     },
+    // "sites": "extended" (opt-in, so recorded runs replay unchanged): values that are assigned,
+    // stored in an object or returned. Small apps keep most of their logic here.
+    AssignmentExpression(p) { if (extended) add("assign", "right", p.node.right); },
+    ObjectProperty(p) { if (extended && !p.node.computed && p.node.value.type !== "StringLiteral") add("property", "value", p.node.value); },
+    ReturnStatement(p) { if (extended) add("return", "argument", p.node.argument); },
   });
   // de-duplicate identical ranges (a call inside an if test, etc.)
   const seen = new Set();

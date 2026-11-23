@@ -141,3 +141,12 @@ test("replay mode answers only from saved agent answers", async () => {
   assert.equal(await replay.complete("s", "p"), "saved answer");
   await assert.rejects(() => replay.complete("s", "other"), /replay: no saved agent answer/);
 });
+
+test("extended sites add assigned, stored and returned values, but only when asked", () => {
+  const code = "function f(xs){ let n = 0; xs.forEach(x => { n += x.done ? 0 : 1; }); const o = { done: false, name: 'li' + (xs.length + 1), label: 'seed' }; return n; }";
+  const base = findSites("f.js", code).map((s) => s.orig);
+  const ext = findSites("f.js", code, { extended: true }).map((s) => s.orig);
+  assert.ok(!base.includes("n"));
+  for (const s of ["x.done ? 0 : 1", "false", "'li' + (xs.length + 1)", "n"]) assert.ok(ext.includes(s), s);
+  assert.ok(!ext.includes("'seed'"));
+});
