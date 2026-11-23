@@ -94,10 +94,10 @@ From the real TodoMVC runs (hunt + healing check):
 ## Use it on your app
 
 ```bash
-npx github:safwaankira/mutant-hunt init      # writes mutant-hunt.config.json and kane/smoke_test.md
-npx github:safwaankira/mutant-hunt doctor    # Kane installed + signed in, agent CLI present
-npx github:safwaankira/mutant-hunt run       # or: run --agent for NDJSON
-npx github:safwaankira/mutant-hunt heal-check [--close]   # do your catches survive Kane's healing?
+npx mutant-hunt init      # writes mutant-hunt.config.json and kane/smoke_test.md
+npx mutant-hunt doctor    # Kane installed + signed in, agent CLI present
+npx mutant-hunt run       # or: run --agent for NDJSON
+npx mutant-hunt heal-check [--close]   # do your catches survive Kane's healing?
 ```
 
 **Replay without an agent.** `run --replay` plants exactly the recorded bugs from
