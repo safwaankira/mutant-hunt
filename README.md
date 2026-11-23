@@ -7,7 +7,7 @@
 every bug Kane misses back to your coding agent, which writes the Kane test that
 catches it.
 
-**▶ 3-minute demo: https://youtu.be/qCsWrZpO9sg** · **Live report: https://safwaankira.github.io/mutant-hunt/examples/todomvc/mutant-hunt-report/**
+**▶ 30-second cut: [`docs/demo-30s.mp4`](docs/demo-30s.mp4)** · **3-minute demo: https://youtu.be/qCsWrZpO9sg** · **Live report: https://safwaankira.github.io/mutant-hunt/examples/todomvc/mutant-hunt-report/**
 
 ![Mutant Hunt report: Kane caught 10% of planted bugs before, 100% after](docs/report.png)
 
