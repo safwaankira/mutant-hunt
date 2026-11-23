@@ -86,6 +86,10 @@ From the real TodoMVC runs (hunt + healing check):
 - **The best diagnosis isn't in the `--agent` stream.** Title, root cause, confidence and screenshot
   live only in the sealed evidence pack, so `src/kane.js` unzips it (`readEvidence()`).
 - **Replays emit almost no `run_end` summary**, so on a replay the evidence pack is the only record.
+- **Exported Playwright code isn't always standalone.** We exported Claude's 6 tests with
+  `kane-cli testmd export`. Without TestMu credentials, 2 of 6 still pass on the real app and fail on
+  their bug. The other 4 use vision steps that return `null` offline. See
+  [`examples/todomvc/playwright`](examples/todomvc/playwright/).
 
 ## Use it on your app
 
